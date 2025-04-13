@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from "@/components/ui/sonner";
 import { apiService, User, Order, OrderItem, Payment } from '@/services/api';
+import { paymentService } from '@/services/payment';
 import { useCart } from '@/contexts/CartContext';
 import { 
   Form, 
@@ -24,7 +25,7 @@ import {
 } from '@/components/ui/radio-group';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CreditCard, Banknote } from 'lucide-react';
+import { CreditCard, Banknote, ShoppingBag } from 'lucide-react';
 
 // Form validation schema
 const formSchema = z.object({
@@ -128,14 +129,35 @@ const CheckoutPage: React.FC = () => {
       
       const order = await apiService.createOrder(orderData);
       
-      // 3. Create payment
+      // 3. Process payment
+      let paymentResult;
+      
+      if (values.paymentMethod === 'credit_card') {
+        paymentResult = await paymentService.processCreditCardPayment(
+          values.cardNumber || '',
+          values.cardExpiry || '',
+          values.cardCvc || '',
+          orderData.total_price
+        );
+      } else {
+        paymentResult = await paymentService.processCashPayment(orderData.total_price);
+      }
+      
+      if (!paymentResult.success) {
+        throw new Error(paymentResult.error || 'Payment processing failed');
+      }
+      
+      // 4. Create payment record
       const paymentData: Payment = {
         order: order.id!,
         payment_method: values.paymentMethod,
         // Only include card details if paying by card
         ...(values.paymentMethod === 'credit_card' && {
           card_last_four: values.cardNumber?.slice(-4) || '',
-          transaction_id: `TXN-${Date.now()}`, // Mock transaction ID
+          transaction_id: paymentResult.transactionId,
+        }),
+        ...(values.paymentMethod === 'cash' && {
+          transaction_id: paymentResult.transactionId,
         }),
       };
       
@@ -163,7 +185,10 @@ const CheckoutPage: React.FC = () => {
         <div className="lg:col-span-2">
           <Card>
             <CardHeader>
-              <CardTitle>Customer Information</CardTitle>
+              <CardTitle className="flex items-center">
+                <ShoppingBag className="mr-2 h-5 w-5 text-pizza-primary" />
+                Customer Information
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <Form {...form}>

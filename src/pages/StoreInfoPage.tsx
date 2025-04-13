@@ -1,109 +1,104 @@
 
-import React, { useState, useEffect } from 'react';
-import { apiService, StoreInfo } from '@/services/api';
-import { MapPin, Phone, Clock } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
+import React from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { apiService } from '@/services/api';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Phone, MapPin, Clock, Info } from 'lucide-react';
+import StoreMap from '@/components/StoreMap';
 
 const StoreInfoPage: React.FC = () => {
-  const [storeInfo, setStoreInfo] = useState<StoreInfo | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: storeInfo, isLoading, error } = useQuery({
+    queryKey: ['storeInfo'],
+    queryFn: apiService.getStoreInfo,
+  });
 
-  useEffect(() => {
-    const fetchStoreInfo = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        
-        const storeInfoData = await apiService.getStoreInfo();
-        
-        // Assuming we only have one store info entry
-        if (storeInfoData && storeInfoData.length > 0) {
-          setStoreInfo(storeInfoData[0]);
-        } else {
-          setError('No store information available.');
-        }
-      } catch (err) {
-        setError('Failed to load store information. Please try again later.');
-        console.error('Error fetching store info:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchStoreInfo();
-  }, []);
+  const firstStore = storeInfo?.[0];
 
   return (
-    <div className="pizza-container py-12">
-      <div className="max-w-3xl mx-auto">
-        <h1 className="text-4xl font-bold text-center mb-8 text-pizza-text">Store Information</h1>
-        
-        {isLoading ? (
-          <div className="pizza-card p-8 space-y-4">
-            <Skeleton className="h-6 w-3/4" />
-            <Skeleton className="h-24 w-full" />
-            <Skeleton className="h-6 w-1/2" />
-            <Skeleton className="h-32 w-full" />
-          </div>
-        ) : error ? (
-          <div className="text-center text-destructive p-4 mb-8">
-            {error}
-          </div>
-        ) : storeInfo ? (
-          <div className="pizza-card p-8">
-            <div className="mb-8">
-              <div className="flex items-start mb-4">
-                <MapPin className="text-pizza-primary mr-3 mt-1 flex-shrink-0" />
-                <div>
-                  <h2 className="text-xl font-semibold mb-2">Our Location</h2>
-                  <p className="text-gray-700 whitespace-pre-line">{storeInfo.address}</p>
-                </div>
-              </div>
-              
-              <div className="w-full h-64 bg-muted rounded-lg mb-4 flex items-center justify-center">
-                <span className="text-muted-foreground">Map View</span>
-              </div>
-              
-              <div className="text-gray-700">
-                <h3 className="font-medium mb-2">How to find us:</h3>
-                <p className="whitespace-pre-line">{storeInfo.directions}</p>
-              </div>
-            </div>
-            
-            <div className="border-t pt-6">
-              <div className="flex items-start mb-6">
-                <Phone className="text-pizza-primary mr-3 mt-1 flex-shrink-0" />
-                <div>
-                  <h2 className="text-xl font-semibold mb-2">Contact Us</h2>
-                  <p className="text-gray-700">
-                    Phone: <a href={`tel:${storeInfo.contact_phone}`} className="text-pizza-primary hover:underline">{storeInfo.contact_phone}</a>
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex items-start">
-                <Clock className="text-pizza-primary mr-3 mt-1 flex-shrink-0" />
-                <div>
-                  <h2 className="text-xl font-semibold mb-2">Opening Hours</h2>
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                    <div>Monday - Thursday</div>
-                    <div>11:00 AM - 10:00 PM</div>
-                    <div>Friday - Saturday</div>
-                    <div>11:00 AM - 11:00 PM</div>
-                    <div>Sunday</div>
-                    <div>12:00 PM - 9:00 PM</div>
+    <div className="pizza-container py-8">
+      <h1 className="text-3xl font-bold text-center mb-2">Store Information</h1>
+      <p className="text-center text-muted-foreground mb-8">Find us and visit our store</p>
+
+      {isLoading ? (
+        <div className="text-center py-8">Loading store information...</div>
+      ) : error ? (
+        <div className="text-center py-8 text-destructive">
+          Error loading store information. Please try again later.
+        </div>
+      ) : firstStore ? (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <MapPin className="mr-2 h-5 w-5 text-pizza-primary" />
+                  Address
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="whitespace-pre-line">{firstStore.address}</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Info className="mr-2 h-5 w-5 text-pizza-primary" />
+                  How to Find Us
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="whitespace-pre-line">{firstStore.directions}</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Phone className="mr-2 h-5 w-5 text-pizza-primary" />
+                  Contact
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p>Phone: {firstStore.contact_phone}</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Clock className="mr-2 h-5 w-5 text-pizza-primary" />
+                  Opening Hours
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span>Monday - Friday</span>
+                    <span className="font-medium">11:00 AM - 10:00 PM</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Saturday</span>
+                    <span className="font-medium">10:00 AM - 11:00 PM</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Sunday</span>
+                    <span className="font-medium">12:00 PM - 9:00 PM</span>
                   </div>
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           </div>
-        ) : (
-          <div className="text-center text-muted-foreground p-4">
-            No store information available.
-          </div>
-        )}
-      </div>
+
+          <StoreMap
+            storeAddress={firstStore.address}
+            storeLat={40.7128}  // Replace with actual store coordinates
+            storeLng={-74.0060} // Replace with actual store coordinates
+          />
+        </div>
+      ) : (
+        <div className="text-center py-8">No store information available.</div>
+      )}
     </div>
   );
 };
