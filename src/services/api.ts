@@ -93,6 +93,13 @@ export interface PizzaPriceInput {
   price: number;
 }
 
+// Interface for size creation/update
+export interface SizeInput {
+  size_name: string;
+  diameter: number;
+  description: string;
+}
+
 // Generic fetch function with error handling
 async function fetchApi<T>(
   endpoint: string, 
@@ -136,6 +143,9 @@ export const apiService = {
   
   // Size endpoints
   getSizes: () => fetchApi<Size[]>('sizes/'),
+  createSize: (data: SizeInput) => fetchApi<Size>('sizes/', 'POST', data),
+  updateSize: (id: number, data: SizeInput) => fetchApi<Size>(`sizes/${id}/`, 'PUT', data),
+  deleteSize: (id: number) => fetchApi<void>(`sizes/${id}/`, 'DELETE'),
   
   // Beverage endpoints
   getBeverages: () => fetchApi<Beverage[]>('beverages/'),

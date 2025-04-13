@@ -1,277 +1,56 @@
 
-import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { 
-  apiService, 
-  Pizza, 
-  PizzaInput, 
-  PizzaPrice, 
-  PizzaPriceInput,
-  Size,
-  SizeInput
-} from '@/services/api';
+import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle 
-} from '@/components/ui/dialog';
-import { 
-  AlertDialog, 
-  AlertDialogAction, 
-  AlertDialogCancel, 
-  AlertDialogContent, 
-  AlertDialogDescription, 
-  AlertDialogFooter, 
-  AlertDialogHeader, 
-  AlertDialogTitle 
-} from '@/components/ui/alert-dialog';
-import { toast } from '@/components/ui/sonner';
-import PizzaForm from '@/components/PizzaForm';
-import PizzaList from '@/components/PizzaList';
-import PizzaPriceForm from '@/components/PizzaPriceForm';
-import PizzaPriceList from '@/components/PizzaPriceList';
-import SizeForm from '@/components/SizeForm';
-import SizeList from '@/components/SizeList';
-import { Plus } from 'lucide-react';
+import { usePizzaAdmin } from '@/hooks/usePizzaAdmin';
+import { usePriceAdmin } from '@/hooks/usePriceAdmin';
+import { useSizeAdmin } from '@/hooks/useSizeAdmin';
+import { useDeleteConfirmation } from '@/hooks/useDeleteConfirmation';
+import PizzaSection from '@/components/admin/PizzaSection';
+import PriceSection from '@/components/admin/PriceSection';
+import SizeSection from '@/components/admin/SizeSection';
+import DeleteConfirmationDialog from '@/components/admin/DeleteConfirmationDialog';
 
 const AdminPage: React.FC = () => {
-  const queryClient = useQueryClient();
+  // Hooks for each admin section
+  const pizzaAdmin = usePizzaAdmin();
+  const priceAdmin = usePriceAdmin();
+  const sizeAdmin = useSizeAdmin();
   
-  // State for modals
-  const [isAddPizzaOpen, setIsAddPizzaOpen] = useState(false);
-  const [isEditPizzaOpen, setIsEditPizzaOpen] = useState(false);
-  const [selectedPizza, setSelectedPizza] = useState<Pizza | null>(null);
+  // Delete confirmation management
+  const deleteConfirmation = useDeleteConfirmation();
   
-  const [isAddPriceOpen, setIsAddPriceOpen] = useState(false);
-  const [isEditPriceOpen, setIsEditPriceOpen] = useState(false);
-  const [selectedPrice, setSelectedPrice] = useState<PizzaPrice | null>(null);
-  
-  const [isAddSizeOpen, setIsAddSizeOpen] = useState(false);
-  const [isEditSizeOpen, setIsEditSizeOpen] = useState(false);
-  const [selectedSize, setSelectedSize] = useState<Size | null>(null);
-  
-  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState<{ id: number; type: 'pizza' | 'price' | 'size' } | null>(null);
-
-  // Fetch pizzas, sizes, and pizza prices
-  const { 
-    data: pizzas = [], 
-    isLoading: isPizzasLoading 
-  } = useQuery({
-    queryKey: ['pizzas'],
-    queryFn: apiService.getPizzas,
-  });
-
-  const { 
-    data: sizes = [], 
-    isLoading: isSizesLoading 
-  } = useQuery({
-    queryKey: ['sizes'],
-    queryFn: apiService.getSizes,
-  });
-
-  const { 
-    data: pizzaPrices = [], 
-    isLoading: isPricesLoading 
-  } = useQuery({
-    queryKey: ['pizzaPrices'],
-    queryFn: apiService.getPizzaPrices,
-  });
-
-  // Mutations for Pizza
-  const createPizzaMutation = useMutation({
-    mutationFn: apiService.createPizza,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pizzas'] });
-      toast.success('Pizza adicionada com sucesso!');
-      setIsAddPizzaOpen(false);
-    },
-    onError: (error) => {
-      toast.error('Falha ao adicionar pizza');
-      console.error('Erro ao criar pizza:', error);
-    }
-  });
-
-  const updatePizzaMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: PizzaInput }) => 
-      apiService.updatePizza(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pizzas'] });
-      toast.success('Pizza atualizada com sucesso!');
-      setIsEditPizzaOpen(false);
-      setSelectedPizza(null);
-    },
-    onError: (error) => {
-      toast.error('Falha ao atualizar pizza');
-      console.error('Erro ao atualizar pizza:', error);
-    }
-  });
-
-  const deletePizzaMutation = useMutation({
-    mutationFn: apiService.deletePizza,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pizzas'] });
-      toast.success('Pizza excluída com sucesso!');
-      setIsDeleteConfirmOpen(false);
-      setItemToDelete(null);
-    },
-    onError: (error) => {
-      toast.error('Falha ao excluir pizza');
-      console.error('Erro ao excluir pizza:', error);
-    }
-  });
-
-  // Mutations for Pizza Price
-  const createPriceMutation = useMutation({
-    mutationFn: apiService.createPizzaPrice,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pizzaPrices'] });
-      toast.success('Preço adicionado com sucesso!');
-      setIsAddPriceOpen(false);
-    },
-    onError: (error) => {
-      toast.error('Falha ao adicionar preço');
-      console.error('Erro ao criar preço:', error);
-    }
-  });
-
-  const updatePriceMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: PizzaPriceInput }) => 
-      apiService.updatePizzaPrice(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pizzaPrices'] });
-      toast.success('Preço atualizado com sucesso!');
-      setIsEditPriceOpen(false);
-      setSelectedPrice(null);
-    },
-    onError: (error) => {
-      toast.error('Falha ao atualizar preço');
-      console.error('Erro ao atualizar preço:', error);
-    }
-  });
-
-  const deletePriceMutation = useMutation({
-    mutationFn: apiService.deletePizzaPrice,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pizzaPrices'] });
-      toast.success('Preço excluído com sucesso!');
-      setIsDeleteConfirmOpen(false);
-      setItemToDelete(null);
-    },
-    onError: (error) => {
-      toast.error('Falha ao excluir preço');
-      console.error('Erro ao excluir preço:', error);
-    }
-  });
-
-  // Mutations for Size
-  const createSizeMutation = useMutation({
-    mutationFn: apiService.createSize,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['sizes'] });
-      toast.success('Tamanho adicionado com sucesso!');
-      setIsAddSizeOpen(false);
-    },
-    onError: (error) => {
-      toast.error('Falha ao adicionar tamanho');
-      console.error('Erro ao criar tamanho:', error);
-    }
-  });
-
-  const updateSizeMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: SizeInput }) => 
-      apiService.updateSize(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['sizes'] });
-      toast.success('Tamanho atualizado com sucesso!');
-      setIsEditSizeOpen(false);
-      setSelectedSize(null);
-    },
-    onError: (error) => {
-      toast.error('Falha ao atualizar tamanho');
-      console.error('Erro ao atualizar tamanho:', error);
-    }
-  });
-
-  const deleteSizeMutation = useMutation({
-    mutationFn: apiService.deleteSize,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['sizes'] });
-      toast.success('Tamanho excluído com sucesso!');
-      setIsDeleteConfirmOpen(false);
-      setItemToDelete(null);
-    },
-    onError: (error) => {
-      toast.error('Falha ao excluir tamanho');
-      console.error('Erro ao excluir tamanho:', error);
-    }
-  });
-
-  // Handlers for Pizza
-  const handleAddPizza = async (data: PizzaInput) => {
-    await createPizzaMutation.mutateAsync(data);
-  };
-
-  const handleEditPizza = async (data: PizzaInput) => {
-    if (selectedPizza) {
-      await updatePizzaMutation.mutateAsync({ id: selectedPizza.id, data });
-    }
-  };
-
+  // Handle delete requests for each type
   const handleDeletePizza = (id: number) => {
-    setItemToDelete({ id, type: 'pizza' });
-    setIsDeleteConfirmOpen(true);
-  };
-
-  // Handlers for Price
-  const handleAddPrice = async (data: PizzaPriceInput) => {
-    await createPriceMutation.mutateAsync(data);
-  };
-
-  const handleEditPrice = async (data: PizzaPriceInput) => {
-    if (selectedPrice) {
-      await updatePriceMutation.mutateAsync({ id: selectedPrice.id, data });
-    }
+    deleteConfirmation.openDeleteDialog(id, 'pizza');
   };
 
   const handleDeletePrice = (id: number) => {
-    setItemToDelete({ id, type: 'price' });
-    setIsDeleteConfirmOpen(true);
-  };
-
-  // Handlers for Size
-  const handleAddSize = async (data: SizeInput) => {
-    await createSizeMutation.mutateAsync(data);
-  };
-
-  const handleEditSize = async (data: SizeInput) => {
-    if (selectedSize) {
-      await updateSizeMutation.mutateAsync({ id: selectedSize.id, data });
-    }
+    deleteConfirmation.openDeleteDialog(id, 'price');
   };
 
   const handleDeleteSize = (id: number) => {
-    setItemToDelete({ id, type: 'size' });
-    setIsDeleteConfirmOpen(true);
+    deleteConfirmation.openDeleteDialog(id, 'size');
   };
 
+  // Handle confirmation of deletion
   const handleConfirmDelete = () => {
-    if (!itemToDelete) return;
+    if (!deleteConfirmation.itemToDelete) return;
     
-    if (itemToDelete.type === 'pizza') {
-      deletePizzaMutation.mutate(itemToDelete.id);
-    } else if (itemToDelete.type === 'price') {
-      deletePriceMutation.mutate(itemToDelete.id);
-    } else if (itemToDelete.type === 'size') {
-      deleteSizeMutation.mutate(itemToDelete.id);
+    const { id, type } = deleteConfirmation.itemToDelete;
+    
+    if (type === 'pizza') {
+      pizzaAdmin.confirmDeletePizza(id);
+    } else if (type === 'price') {
+      priceAdmin.confirmDeletePrice(id);
+    } else if (type === 'size') {
+      sizeAdmin.confirmDeleteSize(id);
     }
+    
+    deleteConfirmation.closeDeleteDialog();
   };
 
-  // Loading state
-  const isLoading = isPizzasLoading || isSizesLoading || isPricesLoading;
+  // Check if any data is still loading
+  const isLoading = pizzaAdmin.isPizzasLoading || priceAdmin.isPricesLoading || sizeAdmin.isSizesLoading;
 
   return (
     <div className="container py-8">
@@ -285,183 +64,70 @@ const AdminPage: React.FC = () => {
         </TabsList>
         
         <TabsContent value="pizzas">
-          <div className="flex justify-end mb-4">
-            <Button onClick={() => setIsAddPizzaOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" /> Adicionar Nova Pizza
-            </Button>
-          </div>
-          
-          {isLoading ? (
-            <div className="text-center py-8">Carregando pizzas...</div>
-          ) : (
-            <PizzaList 
-              pizzas={pizzas} 
-              pizzaPrices={pizzaPrices}
-              onEdit={(pizza) => {
-                setSelectedPizza(pizza);
-                setIsEditPizzaOpen(true);
-              }}
-              onDelete={handleDeletePizza}
-            />
-          )}
+          <PizzaSection
+            pizzas={pizzaAdmin.pizzas}
+            pizzaPrices={priceAdmin.pizzaPrices}
+            isLoading={isLoading}
+            isAddOpen={pizzaAdmin.isAddPizzaOpen}
+            setIsAddOpen={pizzaAdmin.setIsAddPizzaOpen}
+            isEditOpen={pizzaAdmin.isEditPizzaOpen}
+            setIsEditOpen={pizzaAdmin.setIsEditPizzaOpen}
+            selectedPizza={pizzaAdmin.selectedPizza}
+            setSelectedPizza={pizzaAdmin.setSelectedPizza}
+            onAdd={pizzaAdmin.handleAddPizza}
+            onEdit={pizzaAdmin.handleEditPizza}
+            onDelete={handleDeletePizza}
+            isSubmittingAdd={pizzaAdmin.createPizzaMutation.isPending}
+            isSubmittingEdit={pizzaAdmin.updatePizzaMutation.isPending}
+          />
         </TabsContent>
         
         <TabsContent value="prices">
-          <div className="flex justify-end mb-4">
-            <Button onClick={() => setIsAddPriceOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" /> Adicionar Novo Preço
-            </Button>
-          </div>
-          
-          {isLoading ? (
-            <div className="text-center py-8">Carregando preços...</div>
-          ) : (
-            <PizzaPriceList 
-              pizzaPrices={pizzaPrices}
-              pizzas={pizzas}
-              sizes={sizes}
-              onEdit={(price) => {
-                setSelectedPrice(price);
-                setIsEditPriceOpen(true);
-              }}
-              onDelete={handleDeletePrice}
-            />
-          )}
+          <PriceSection
+            pizzaPrices={priceAdmin.pizzaPrices}
+            pizzas={pizzaAdmin.pizzas}
+            sizes={sizeAdmin.sizes}
+            isLoading={isLoading}
+            isAddOpen={priceAdmin.isAddPriceOpen}
+            setIsAddOpen={priceAdmin.setIsAddPriceOpen}
+            isEditOpen={priceAdmin.isEditPriceOpen}
+            setIsEditOpen={priceAdmin.setIsEditPriceOpen}
+            selectedPrice={priceAdmin.selectedPrice}
+            setSelectedPrice={priceAdmin.setSelectedPrice}
+            onAdd={priceAdmin.handleAddPrice}
+            onEdit={priceAdmin.handleEditPrice}
+            onDelete={handleDeletePrice}
+            isSubmittingAdd={priceAdmin.createPriceMutation.isPending}
+            isSubmittingEdit={priceAdmin.updatePriceMutation.isPending}
+          />
         </TabsContent>
 
         <TabsContent value="sizes">
-          <div className="flex justify-end mb-4">
-            <Button onClick={() => setIsAddSizeOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" /> Adicionar Novo Tamanho
-            </Button>
-          </div>
-          
-          {isLoading ? (
-            <div className="text-center py-8">Carregando tamanhos...</div>
-          ) : (
-            <SizeList 
-              sizes={sizes}
-              onEdit={(size) => {
-                setSelectedSize(size);
-                setIsEditSizeOpen(true);
-              }}
-              onDelete={handleDeleteSize}
-            />
-          )}
+          <SizeSection
+            sizes={sizeAdmin.sizes}
+            isLoading={isLoading}
+            isAddOpen={sizeAdmin.isAddSizeOpen}
+            setIsAddOpen={sizeAdmin.setIsAddSizeOpen}
+            isEditOpen={sizeAdmin.isEditSizeOpen}
+            setIsEditOpen={sizeAdmin.setIsEditSizeOpen}
+            selectedSize={sizeAdmin.selectedSize}
+            setSelectedSize={sizeAdmin.setSelectedSize}
+            onAdd={sizeAdmin.handleAddSize}
+            onEdit={sizeAdmin.handleEditSize}
+            onDelete={handleDeleteSize}
+            isSubmittingAdd={sizeAdmin.createSizeMutation.isPending}
+            isSubmittingEdit={sizeAdmin.updateSizeMutation.isPending}
+          />
         </TabsContent>
       </Tabs>
       
-      {/* Add Pizza Dialog */}
-      <Dialog open={isAddPizzaOpen} onOpenChange={setIsAddPizzaOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Adicionar Nova Pizza</DialogTitle>
-          </DialogHeader>
-          <PizzaForm 
-            onSubmit={handleAddPizza} 
-            isSubmitting={createPizzaMutation.isPending}
-          />
-        </DialogContent>
-      </Dialog>
-      
-      {/* Edit Pizza Dialog */}
-      <Dialog open={isEditPizzaOpen} onOpenChange={setIsEditPizzaOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Editar Pizza</DialogTitle>
-          </DialogHeader>
-          {selectedPizza && (
-            <PizzaForm 
-              defaultValues={selectedPizza}
-              onSubmit={handleEditPizza} 
-              isSubmitting={updatePizzaMutation.isPending}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
-      
-      {/* Add Price Dialog */}
-      <Dialog open={isAddPriceOpen} onOpenChange={setIsAddPriceOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Adicionar Novo Preço</DialogTitle>
-          </DialogHeader>
-          <PizzaPriceForm
-            pizzas={pizzas}
-            sizes={sizes}
-            onSubmit={handleAddPrice}
-            isSubmitting={createPriceMutation.isPending}
-          />
-        </DialogContent>
-      </Dialog>
-      
-      {/* Edit Price Dialog */}
-      <Dialog open={isEditPriceOpen} onOpenChange={setIsEditPriceOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Editar Preço</DialogTitle>
-          </DialogHeader>
-          {selectedPrice && (
-            <PizzaPriceForm
-              pizzas={pizzas}
-              sizes={sizes}
-              defaultValues={selectedPrice}
-              onSubmit={handleEditPrice}
-              isSubmitting={updatePriceMutation.isPending}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Add Size Dialog */}
-      <Dialog open={isAddSizeOpen} onOpenChange={setIsAddSizeOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Adicionar Novo Tamanho</DialogTitle>
-          </DialogHeader>
-          <SizeForm
-            onSubmit={handleAddSize}
-            isSubmitting={createSizeMutation.isPending}
-          />
-        </DialogContent>
-      </Dialog>
-      
-      {/* Edit Size Dialog */}
-      <Dialog open={isEditSizeOpen} onOpenChange={setIsEditSizeOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Editar Tamanho</DialogTitle>
-          </DialogHeader>
-          {selectedSize && (
-            <SizeForm
-              defaultValues={selectedSize}
-              onSubmit={handleEditSize}
-              isSubmitting={updateSizeMutation.isPending}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
-      
-      {/* Delete Confirmation */}
-      <AlertDialog open={isDeleteConfirmOpen} onOpenChange={setIsDeleteConfirmOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta ação não pode ser desfeita. Isso excluirá permanentemente 
-              {itemToDelete?.type === 'pizza' ? ' a pizza' : 
-                itemToDelete?.type === 'price' ? ' o preço' : ' o tamanho'} 
-              do banco de dados.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmDelete}>
-              Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Common Delete Confirmation Dialog */}
+      <DeleteConfirmationDialog
+        isOpen={deleteConfirmation.isDeleteConfirmOpen}
+        onOpenChange={deleteConfirmation.setIsDeleteConfirmOpen}
+        onConfirm={handleConfirmDelete}
+        itemType={deleteConfirmation.itemToDelete?.type || null}
+      />
     </div>
   );
 };
