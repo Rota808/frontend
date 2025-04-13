@@ -8,6 +8,7 @@ export interface Pizza {
   id: number;
   pizza_name: string;
   description: string;
+  image_url?: string;
 }
 
 export interface Size {
@@ -78,6 +79,20 @@ export interface Payment {
   transaction_id?: string;
 }
 
+// Interface for pizza creation/update
+export interface PizzaInput {
+  pizza_name: string;
+  description: string;
+  image_url?: string;
+}
+
+// Interface for pizza price creation/update
+export interface PizzaPriceInput {
+  pizza: number;
+  size: number;
+  price: number;
+}
+
 // Generic fetch function with error handling
 async function fetchApi<T>(
   endpoint: string, 
@@ -115,6 +130,9 @@ export const apiService = {
   // Pizza endpoints
   getPizzas: () => fetchApi<Pizza[]>('pizzas/'),
   getPizza: (id: number) => fetchApi<Pizza>(`pizzas/${id}/`),
+  createPizza: (data: PizzaInput) => fetchApi<Pizza>('pizzas/', 'POST', data),
+  updatePizza: (id: number, data: PizzaInput) => fetchApi<Pizza>(`pizzas/${id}/`, 'PUT', data),
+  deletePizza: (id: number) => fetchApi<void>(`pizzas/${id}/`, 'DELETE'),
   
   // Size endpoints
   getSizes: () => fetchApi<Size[]>('sizes/'),
@@ -124,6 +142,9 @@ export const apiService = {
   
   // PizzaPrice endpoints
   getPizzaPrices: () => fetchApi<PizzaPrice[]>('pizza-prices/'),
+  createPizzaPrice: (data: PizzaPriceInput) => fetchApi<PizzaPrice>('pizza-prices/', 'POST', data),
+  updatePizzaPrice: (id: number, data: PizzaPriceInput) => fetchApi<PizzaPrice>(`pizza-prices/${id}/`, 'PUT', data),
+  deletePizzaPrice: (id: number) => fetchApi<void>(`pizza-prices/${id}/`, 'DELETE'),
   
   // StoreInfo endpoints
   getStoreInfo: () => fetchApi<StoreInfo[]>('store-info/'),

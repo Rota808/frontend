@@ -79,8 +79,16 @@ const PizzaCard: React.FC<PizzaCardProps> = ({ pizza, sizes, pizzaPrices }) => {
         </CardDescription>
       </CardHeader>
       <CardContent className="flex-grow">
-        <div className="w-full h-48 bg-muted rounded-md mb-4 flex items-center justify-center">
-          <span className="text-muted-foreground">Pizza Image</span>
+        <div className="w-full h-48 bg-muted rounded-md mb-4 flex items-center justify-center overflow-hidden">
+          {pizza.image_url ? (
+            <img 
+              src={pizza.image_url} 
+              alt={pizza.pizza_name} 
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <span className="text-muted-foreground">Pizza Image</span>
+          )}
         </div>
       </CardContent>
       <CardFooter className="flex flex-col space-y-3">

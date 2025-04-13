@@ -13,6 +13,7 @@ import StoreInfoPage from "@/pages/StoreInfoPage";
 import CartPage from "@/pages/CartPage";
 import CheckoutPage from "@/pages/CheckoutPage";
 import OrderTrackingPage from "@/pages/OrderTrackingPage";
+import AdminPage from "@/pages/AdminPage";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,7 @@ const App = () => (
                 <Route path="/cart" element={<CartPage />} />
                 <Route path="/checkout" element={<CheckoutPage />} />
                 <Route path="/order-tracking" element={<OrderTrackingPage />} />
+                <Route path="/admin" element={<AdminPage />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </main>
