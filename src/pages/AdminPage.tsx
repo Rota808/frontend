@@ -1,12 +1,14 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   apiService, 
   Pizza, 
   PizzaInput, 
   PizzaPrice, 
-  PizzaPriceInput 
+  PizzaPriceInput,
+  Size,
+  SizeInput
 } from '@/services/api';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -31,6 +33,8 @@ import PizzaForm from '@/components/PizzaForm';
 import PizzaList from '@/components/PizzaList';
 import PizzaPriceForm from '@/components/PizzaPriceForm';
 import PizzaPriceList from '@/components/PizzaPriceList';
+import SizeForm from '@/components/SizeForm';
+import SizeList from '@/components/SizeList';
 import { Plus } from 'lucide-react';
 
 const AdminPage: React.FC = () => {
@@ -45,8 +49,12 @@ const AdminPage: React.FC = () => {
   const [isEditPriceOpen, setIsEditPriceOpen] = useState(false);
   const [selectedPrice, setSelectedPrice] = useState<PizzaPrice | null>(null);
   
+  const [isAddSizeOpen, setIsAddSizeOpen] = useState(false);
+  const [isEditSizeOpen, setIsEditSizeOpen] = useState(false);
+  const [selectedSize, setSelectedSize] = useState<Size | null>(null);
+  
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState<{ id: number; type: 'pizza' | 'price' } | null>(null);
+  const [itemToDelete, setItemToDelete] = useState<{ id: number; type: 'pizza' | 'price' | 'size' } | null>(null);
 
   // Fetch pizzas, sizes, and pizza prices
   const { 
@@ -73,17 +81,17 @@ const AdminPage: React.FC = () => {
     queryFn: apiService.getPizzaPrices,
   });
 
-  // Mutations
+  // Mutations for Pizza
   const createPizzaMutation = useMutation({
     mutationFn: apiService.createPizza,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pizzas'] });
-      toast.success('Pizza added successfully!');
+      toast.success('Pizza adicionada com sucesso!');
       setIsAddPizzaOpen(false);
     },
     onError: (error) => {
-      toast.error('Failed to add pizza');
-      console.error('Error creating pizza:', error);
+      toast.error('Falha ao adicionar pizza');
+      console.error('Erro ao criar pizza:', error);
     }
   });
 
@@ -92,13 +100,13 @@ const AdminPage: React.FC = () => {
       apiService.updatePizza(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pizzas'] });
-      toast.success('Pizza updated successfully!');
+      toast.success('Pizza atualizada com sucesso!');
       setIsEditPizzaOpen(false);
       setSelectedPizza(null);
     },
     onError: (error) => {
-      toast.error('Failed to update pizza');
-      console.error('Error updating pizza:', error);
+      toast.error('Falha ao atualizar pizza');
+      console.error('Erro ao atualizar pizza:', error);
     }
   });
 
@@ -106,26 +114,27 @@ const AdminPage: React.FC = () => {
     mutationFn: apiService.deletePizza,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pizzas'] });
-      toast.success('Pizza deleted successfully!');
+      toast.success('Pizza excluída com sucesso!');
       setIsDeleteConfirmOpen(false);
       setItemToDelete(null);
     },
     onError: (error) => {
-      toast.error('Failed to delete pizza');
-      console.error('Error deleting pizza:', error);
+      toast.error('Falha ao excluir pizza');
+      console.error('Erro ao excluir pizza:', error);
     }
   });
 
+  // Mutations for Pizza Price
   const createPriceMutation = useMutation({
     mutationFn: apiService.createPizzaPrice,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pizzaPrices'] });
-      toast.success('Price added successfully!');
+      toast.success('Preço adicionado com sucesso!');
       setIsAddPriceOpen(false);
     },
     onError: (error) => {
-      toast.error('Failed to add price');
-      console.error('Error creating price:', error);
+      toast.error('Falha ao adicionar preço');
+      console.error('Erro ao criar preço:', error);
     }
   });
 
@@ -134,13 +143,13 @@ const AdminPage: React.FC = () => {
       apiService.updatePizzaPrice(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pizzaPrices'] });
-      toast.success('Price updated successfully!');
+      toast.success('Preço atualizado com sucesso!');
       setIsEditPriceOpen(false);
       setSelectedPrice(null);
     },
     onError: (error) => {
-      toast.error('Failed to update price');
-      console.error('Error updating price:', error);
+      toast.error('Falha ao atualizar preço');
+      console.error('Erro ao atualizar preço:', error);
     }
   });
 
@@ -148,17 +157,60 @@ const AdminPage: React.FC = () => {
     mutationFn: apiService.deletePizzaPrice,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pizzaPrices'] });
-      toast.success('Price deleted successfully!');
+      toast.success('Preço excluído com sucesso!');
       setIsDeleteConfirmOpen(false);
       setItemToDelete(null);
     },
     onError: (error) => {
-      toast.error('Failed to delete price');
-      console.error('Error deleting price:', error);
+      toast.error('Falha ao excluir preço');
+      console.error('Erro ao excluir preço:', error);
     }
   });
 
-  // Handlers
+  // Mutations for Size
+  const createSizeMutation = useMutation({
+    mutationFn: apiService.createSize,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sizes'] });
+      toast.success('Tamanho adicionado com sucesso!');
+      setIsAddSizeOpen(false);
+    },
+    onError: (error) => {
+      toast.error('Falha ao adicionar tamanho');
+      console.error('Erro ao criar tamanho:', error);
+    }
+  });
+
+  const updateSizeMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: SizeInput }) => 
+      apiService.updateSize(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sizes'] });
+      toast.success('Tamanho atualizado com sucesso!');
+      setIsEditSizeOpen(false);
+      setSelectedSize(null);
+    },
+    onError: (error) => {
+      toast.error('Falha ao atualizar tamanho');
+      console.error('Erro ao atualizar tamanho:', error);
+    }
+  });
+
+  const deleteSizeMutation = useMutation({
+    mutationFn: apiService.deleteSize,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sizes'] });
+      toast.success('Tamanho excluído com sucesso!');
+      setIsDeleteConfirmOpen(false);
+      setItemToDelete(null);
+    },
+    onError: (error) => {
+      toast.error('Falha ao excluir tamanho');
+      console.error('Erro ao excluir tamanho:', error);
+    }
+  });
+
+  // Handlers for Pizza
   const handleAddPizza = async (data: PizzaInput) => {
     await createPizzaMutation.mutateAsync(data);
   };
@@ -174,16 +226,7 @@ const AdminPage: React.FC = () => {
     setIsDeleteConfirmOpen(true);
   };
 
-  const handleConfirmDelete = () => {
-    if (!itemToDelete) return;
-    
-    if (itemToDelete.type === 'pizza') {
-      deletePizzaMutation.mutate(itemToDelete.id);
-    } else {
-      deletePriceMutation.mutate(itemToDelete.id);
-    }
-  };
-
+  // Handlers for Price
   const handleAddPrice = async (data: PizzaPriceInput) => {
     await createPriceMutation.mutateAsync(data);
   };
@@ -199,28 +242,57 @@ const AdminPage: React.FC = () => {
     setIsDeleteConfirmOpen(true);
   };
 
+  // Handlers for Size
+  const handleAddSize = async (data: SizeInput) => {
+    await createSizeMutation.mutateAsync(data);
+  };
+
+  const handleEditSize = async (data: SizeInput) => {
+    if (selectedSize) {
+      await updateSizeMutation.mutateAsync({ id: selectedSize.id, data });
+    }
+  };
+
+  const handleDeleteSize = (id: number) => {
+    setItemToDelete({ id, type: 'size' });
+    setIsDeleteConfirmOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!itemToDelete) return;
+    
+    if (itemToDelete.type === 'pizza') {
+      deletePizzaMutation.mutate(itemToDelete.id);
+    } else if (itemToDelete.type === 'price') {
+      deletePriceMutation.mutate(itemToDelete.id);
+    } else if (itemToDelete.type === 'size') {
+      deleteSizeMutation.mutate(itemToDelete.id);
+    }
+  };
+
   // Loading state
   const isLoading = isPizzasLoading || isSizesLoading || isPricesLoading;
 
   return (
     <div className="container py-8">
-      <h1 className="text-3xl font-bold mb-8 text-center">Admin Dashboard</h1>
+      <h1 className="text-3xl font-bold mb-8 text-center">Painel Administrativo</h1>
       
       <Tabs defaultValue="pizzas">
-        <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 mb-8">
-          <TabsTrigger value="pizzas">Manage Pizzas</TabsTrigger>
-          <TabsTrigger value="prices">Manage Prices</TabsTrigger>
+        <TabsList className="grid w-full max-w-md mx-auto grid-cols-3 mb-8">
+          <TabsTrigger value="pizzas">Gerenciar Pizzas</TabsTrigger>
+          <TabsTrigger value="prices">Gerenciar Preços</TabsTrigger>
+          <TabsTrigger value="sizes">Gerenciar Tamanhos</TabsTrigger>
         </TabsList>
         
         <TabsContent value="pizzas">
           <div className="flex justify-end mb-4">
             <Button onClick={() => setIsAddPizzaOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" /> Add New Pizza
+              <Plus className="mr-2 h-4 w-4" /> Adicionar Nova Pizza
             </Button>
           </div>
           
           {isLoading ? (
-            <div className="text-center py-8">Loading pizzas...</div>
+            <div className="text-center py-8">Carregando pizzas...</div>
           ) : (
             <PizzaList 
               pizzas={pizzas} 
@@ -237,12 +309,12 @@ const AdminPage: React.FC = () => {
         <TabsContent value="prices">
           <div className="flex justify-end mb-4">
             <Button onClick={() => setIsAddPriceOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" /> Add New Price
+              <Plus className="mr-2 h-4 w-4" /> Adicionar Novo Preço
             </Button>
           </div>
           
           {isLoading ? (
-            <div className="text-center py-8">Loading prices...</div>
+            <div className="text-center py-8">Carregando preços...</div>
           ) : (
             <PizzaPriceList 
               pizzaPrices={pizzaPrices}
@@ -256,13 +328,34 @@ const AdminPage: React.FC = () => {
             />
           )}
         </TabsContent>
+
+        <TabsContent value="sizes">
+          <div className="flex justify-end mb-4">
+            <Button onClick={() => setIsAddSizeOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" /> Adicionar Novo Tamanho
+            </Button>
+          </div>
+          
+          {isLoading ? (
+            <div className="text-center py-8">Carregando tamanhos...</div>
+          ) : (
+            <SizeList 
+              sizes={sizes}
+              onEdit={(size) => {
+                setSelectedSize(size);
+                setIsEditSizeOpen(true);
+              }}
+              onDelete={handleDeleteSize}
+            />
+          )}
+        </TabsContent>
       </Tabs>
       
       {/* Add Pizza Dialog */}
       <Dialog open={isAddPizzaOpen} onOpenChange={setIsAddPizzaOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add New Pizza</DialogTitle>
+            <DialogTitle>Adicionar Nova Pizza</DialogTitle>
           </DialogHeader>
           <PizzaForm 
             onSubmit={handleAddPizza} 
@@ -275,7 +368,7 @@ const AdminPage: React.FC = () => {
       <Dialog open={isEditPizzaOpen} onOpenChange={setIsEditPizzaOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Pizza</DialogTitle>
+            <DialogTitle>Editar Pizza</DialogTitle>
           </DialogHeader>
           {selectedPizza && (
             <PizzaForm 
@@ -291,7 +384,7 @@ const AdminPage: React.FC = () => {
       <Dialog open={isAddPriceOpen} onOpenChange={setIsAddPriceOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add New Price</DialogTitle>
+            <DialogTitle>Adicionar Novo Preço</DialogTitle>
           </DialogHeader>
           <PizzaPriceForm
             pizzas={pizzas}
@@ -306,7 +399,7 @@ const AdminPage: React.FC = () => {
       <Dialog open={isEditPriceOpen} onOpenChange={setIsEditPriceOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Price</DialogTitle>
+            <DialogTitle>Editar Preço</DialogTitle>
           </DialogHeader>
           {selectedPrice && (
             <PizzaPriceForm
@@ -319,22 +412,52 @@ const AdminPage: React.FC = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Add Size Dialog */}
+      <Dialog open={isAddSizeOpen} onOpenChange={setIsAddSizeOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Adicionar Novo Tamanho</DialogTitle>
+          </DialogHeader>
+          <SizeForm
+            onSubmit={handleAddSize}
+            isSubmitting={createSizeMutation.isPending}
+          />
+        </DialogContent>
+      </Dialog>
+      
+      {/* Edit Size Dialog */}
+      <Dialog open={isEditSizeOpen} onOpenChange={setIsEditSizeOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Tamanho</DialogTitle>
+          </DialogHeader>
+          {selectedSize && (
+            <SizeForm
+              defaultValues={selectedSize}
+              onSubmit={handleEditSize}
+              isSubmitting={updateSizeMutation.isPending}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
       
       {/* Delete Confirmation */}
       <AlertDialog open={isDeleteConfirmOpen} onOpenChange={setIsDeleteConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the 
-              {itemToDelete?.type === 'pizza' ? ' pizza' : ' price'} 
-              from the database.
+              Esta ação não pode ser desfeita. Isso excluirá permanentemente 
+              {itemToDelete?.type === 'pizza' ? ' a pizza' : 
+                itemToDelete?.type === 'price' ? ' o preço' : ' o tamanho'} 
+              do banco de dados.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmDelete}>
-              Delete
+              Excluir
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -32,8 +32,8 @@ const MenuPage: React.FC = () => {
         setPizzaPrices(pizzaPricesData);
         setBeverages(beveragesData);
       } catch (err) {
-        setError('Failed to load menu data. Please try again later.');
-        console.error('Error fetching menu data:', err);
+        setError('Falha ao carregar dados do menu. Por favor, tente novamente mais tarde.');
+        console.error('Erro ao buscar dados do menu:', err);
       } finally {
         setIsLoading(false);
       }
@@ -58,7 +58,7 @@ const MenuPage: React.FC = () => {
 
   return (
     <div className="pizza-container py-8">
-      <h1 className="text-3xl font-bold text-center mb-8">Our Menu</h1>
+      <h1 className="text-3xl font-bold text-center mb-8">Nosso Cardápio</h1>
       
       {error ? (
         <div className="text-center text-destructive p-4 mb-8">
@@ -68,12 +68,12 @@ const MenuPage: React.FC = () => {
         <Tabs defaultValue="pizzas" className="w-full">
           <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 mb-8">
             <TabsTrigger value="pizzas">Pizzas</TabsTrigger>
-            <TabsTrigger value="beverages">Beverages</TabsTrigger>
+            <TabsTrigger value="beverages">Bebidas</TabsTrigger>
           </TabsList>
           
           <TabsContent value="pizzas">
             <div className="mb-8">
-              <h2 className="text-2xl font-semibold mb-6">Our Delicious Pizzas</h2>
+              <h2 className="text-2xl font-semibold mb-6">Nossas Pizzas Deliciosas</h2>
               
               {isLoading ? (
                 <PizzaSkeletons />
@@ -94,7 +94,7 @@ const MenuPage: React.FC = () => {
           
           <TabsContent value="beverages">
             <div className="mb-8">
-              <h2 className="text-2xl font-semibold mb-6">Refreshing Beverages</h2>
+              <h2 className="text-2xl font-semibold mb-6">Bebidas Refrescantes</h2>
               
               {isLoading ? (
                 <PizzaSkeletons />

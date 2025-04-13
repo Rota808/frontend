@@ -3,7 +3,7 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { PizzaInput } from '@/services/api';
+import { Size } from '@/services/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -17,44 +17,46 @@ import {
 } from '@/components/ui/form';
 import { toast } from '@/components/ui/sonner';
 
-const pizzaSchema = z.object({
-  pizza_name: z.string().min(2, {
-    message: 'O nome da pizza deve ter pelo menos 2 caracteres.',
+const sizeSchema = z.object({
+  size_name: z.string().min(2, {
+    message: 'O nome do tamanho deve ter pelo menos 2 caracteres.',
   }),
-  description: z.string().min(5, {
-    message: 'A descrição deve ter pelo menos 5 caracteres.',
+  diameter: z.coerce.number().min(1, {
+    message: 'O diâmetro deve ser maior que 0.',
   }),
-  image_url: z.string().url({ message: 'Por favor, insira uma URL válida' }).optional(),
+  description: z.string().optional(),
 });
 
-interface PizzaFormProps {
-  defaultValues?: PizzaInput;
-  onSubmit: (data: PizzaInput) => Promise<void>;
+type SizeInput = Omit<Size, 'id'>;
+
+interface SizeFormProps {
+  defaultValues?: SizeInput;
+  onSubmit: (data: SizeInput) => Promise<void>;
   isSubmitting: boolean;
 }
 
-const PizzaForm: React.FC<PizzaFormProps> = ({
+const SizeForm: React.FC<SizeFormProps> = ({
   defaultValues = {
-    pizza_name: '',
+    size_name: '',
+    diameter: 0,
     description: '',
-    image_url: '',
   },
   onSubmit,
   isSubmitting,
 }) => {
-  const form = useForm<PizzaInput>({
-    resolver: zodResolver(pizzaSchema),
+  const form = useForm<SizeInput>({
+    resolver: zodResolver(sizeSchema),
     defaultValues,
   });
 
-  const handleSubmit = async (data: PizzaInput) => {
+  const handleSubmit = async (data: SizeInput) => {
     try {
       await onSubmit(data);
-      if (!defaultValues.pizza_name) {
+      if (!defaultValues.size_name) {
         form.reset();
       }
     } catch (error) {
-      toast.error('Falha ao salvar pizza');
+      toast.error('Falha ao salvar tamanho');
       console.error('Erro no envio:', error);
     }
   };
@@ -64,12 +66,30 @@ const PizzaForm: React.FC<PizzaFormProps> = ({
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
         <FormField
           control={form.control}
-          name="pizza_name"
+          name="size_name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Nome da Pizza</FormLabel>
+              <FormLabel>Nome do Tamanho</FormLabel>
               <FormControl>
-                <Input placeholder="Margherita" {...field} />
+                <Input placeholder="Pequena" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="diameter"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Diâmetro (cm)</FormLabel>
+              <FormControl>
+                <Input 
+                  type="number" 
+                  placeholder="20"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -84,23 +104,9 @@ const PizzaForm: React.FC<PizzaFormProps> = ({
               <FormLabel>Descrição</FormLabel>
               <FormControl>
                 <Textarea 
-                  placeholder="Deliciosa pizza com mussarela fresca, tomates e manjericão" 
+                  placeholder="Descrição do tamanho" 
                   {...field} 
                 />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="image_url"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>URL da Imagem</FormLabel>
-              <FormControl>
-                <Input placeholder="https://exemplo.com/pizza.jpg" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -112,11 +118,11 @@ const PizzaForm: React.FC<PizzaFormProps> = ({
           className="w-full bg-pizza-primary hover:bg-pizza-primary/90"
           disabled={isSubmitting}
         >
-          {isSubmitting ? 'Salvando...' : defaultValues.pizza_name ? 'Atualizar Pizza' : 'Adicionar Pizza'}
+          {isSubmitting ? 'Salvando...' : defaultValues.size_name ? 'Atualizar Tamanho' : 'Adicionar Tamanho'}
         </Button>
       </form>
     </Form>
   );
 };
 
-export default PizzaForm;
+export default SizeForm;

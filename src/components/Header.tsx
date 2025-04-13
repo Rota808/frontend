@@ -23,23 +23,23 @@ const Header = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center">
             <span className="text-2xl font-bold text-pizza-primary">
-              OrderUp
+              Rota808
             </span>
           </Link>
           
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             <Link to="/" className="text-pizza-text hover:text-pizza-primary transition-colors">
-              Menu
+              Cardápio
             </Link>
             <Link to="/about" className="text-pizza-text hover:text-pizza-primary transition-colors">
-              About Us
+              Sobre Nós
             </Link>
             <Link to="/store-info" className="text-pizza-text hover:text-pizza-primary transition-colors">
-              Store Info
+              Informações da Loja
             </Link>
             <Link to="/order-tracking" className="text-pizza-text hover:text-pizza-primary transition-colors">
-              Track Order
+              Rastrear Pedido
             </Link>
           </nav>
           
@@ -81,28 +81,28 @@ const Header = () => {
                 className="text-pizza-text hover:text-pizza-primary transition-colors px-4"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Menu
+                Cardápio
               </Link>
               <Link 
                 to="/about" 
                 className="text-pizza-text hover:text-pizza-primary transition-colors px-4"
                 onClick={() => setIsMenuOpen(false)}
               >
-                About Us
+                Sobre Nós
               </Link>
               <Link 
                 to="/store-info" 
                 className="text-pizza-text hover:text-pizza-primary transition-colors px-4"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Store Info
+                Informações da Loja
               </Link>
               <Link 
                 to="/order-tracking" 
                 className="text-pizza-text hover:text-pizza-primary transition-colors px-4"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Track Order
+                Rastrear Pedido
               </Link>
             </div>
           </nav>

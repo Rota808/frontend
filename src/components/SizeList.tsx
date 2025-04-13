@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { PizzaPrice, Pizza, Size } from '@/services/api';
+import { Size } from '@/services/api';
 import { Button } from '@/components/ui/button';
 import { 
   Table,
@@ -18,74 +18,58 @@ import {
 } from '@/components/ui/card';
 import { Pencil, Trash2 } from 'lucide-react';
 
-interface PizzaPriceListProps {
-  pizzaPrices: PizzaPrice[];
-  pizzas: Pizza[];
+interface SizeListProps {
   sizes: Size[];
-  onEdit: (priceItem: PizzaPrice) => void;
+  onEdit: (size: Size) => void;
   onDelete: (id: number) => void;
 }
 
-const PizzaPriceList: React.FC<PizzaPriceListProps> = ({ 
-  pizzaPrices, 
-  pizzas,
+const SizeList: React.FC<SizeListProps> = ({ 
   sizes,
   onEdit, 
   onDelete 
 }) => {
-  // Helper function to find pizza name by id
-  const getPizzaName = (pizzaId: number) => {
-    const pizza = pizzas.find(p => p.id === pizzaId);
-    return pizza ? pizza.pizza_name : 'Pizza Desconhecida';
-  };
-
-  // Helper function to find size name by id
-  const getSizeName = (sizeId: number) => {
-    const size = sizes.find(s => s.id === sizeId);
-    return size ? `${size.size_name} (${size.diameter}cm)` : 'Tamanho Desconhecido';
-  };
-
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Preços das Pizzas</CardTitle>
+        <CardTitle>Tamanhos Disponíveis</CardTitle>
       </CardHeader>
       <CardContent>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Pizza</TableHead>
-              <TableHead>Tamanho</TableHead>
-              <TableHead>Preço (R$)</TableHead>
+              <TableHead>Nome</TableHead>
+              <TableHead>Diâmetro (cm)</TableHead>
+              <TableHead>Descrição</TableHead>
               <TableHead>Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {pizzaPrices.length === 0 ? (
+            {sizes.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={4} className="text-center py-4">
-                  Nenhuma informação de preço encontrada
+                  Nenhum tamanho encontrado
                 </TableCell>
               </TableRow>
             ) : (
-              pizzaPrices.map((price) => (
-                <TableRow key={price.id}>
-                  <TableCell>{getPizzaName(price.pizza)}</TableCell>
-                  <TableCell>{getSizeName(price.size)}</TableCell>
-                  <TableCell>R${price.price.toFixed(2)}</TableCell>
+              sizes.map((size) => (
+                <TableRow key={size.id}>
+                  <TableCell className="font-medium">{size.size_name}</TableCell>
+                  <TableCell>{size.diameter}</TableCell>
+                  <TableCell className="max-w-xs truncate">{size.description}</TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
                       <Button 
                         size="icon" 
                         variant="outline" 
-                        onClick={() => onEdit(price)}
+                        onClick={() => onEdit(size)}
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
                       <Button 
                         size="icon" 
                         variant="destructive" 
-                        onClick={() => onDelete(price.id)}
+                        onClick={() => onDelete(size.id)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -101,4 +85,4 @@ const PizzaPriceList: React.FC<PizzaPriceListProps> = ({
   );
 };
 
-export default PizzaPriceList;
+export default SizeList;

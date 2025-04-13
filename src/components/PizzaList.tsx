@@ -39,24 +39,24 @@ const PizzaList: React.FC<PizzaListProps> = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Available Pizzas</CardTitle>
+        <CardTitle>Pizzas Disponíveis</CardTitle>
       </CardHeader>
       <CardContent>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Image</TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>Price Count</TableHead>
-              <TableHead>Actions</TableHead>
+              <TableHead>Imagem</TableHead>
+              <TableHead>Nome</TableHead>
+              <TableHead>Descrição</TableHead>
+              <TableHead>Contagem de Preços</TableHead>
+              <TableHead>Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {pizzas.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="text-center py-4">
-                  No pizzas found
+                  Nenhuma pizza encontrada
                 </TableCell>
               </TableRow>
             ) : (
@@ -71,7 +71,7 @@ const PizzaList: React.FC<PizzaListProps> = ({
                       />
                     ) : (
                       <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center text-gray-400">
-                        No image
+                        Sem imagem
                       </div>
                     )}
                   </TableCell>
