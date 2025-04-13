@@ -1,40 +1,36 @@
-
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { toast } from "@/components/ui/sonner";
-import { apiService, User, Order, OrderItem, Payment } from '@/services/api';
-import { paymentService } from '@/services/payment';
-import { useCart } from '@/contexts/CartContext';
-import { 
-  Form, 
-  FormControl, 
-  FormField, 
-  FormItem, 
-  FormLabel, 
-  FormMessage 
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
+import { apiService, User, Order, OrderItem, Payment } from "@/services/api";
+import { paymentService } from "@/services/payment";
+import { useCart } from "@/contexts/CartContext";
 import {
-  RadioGroup,
-  RadioGroupItem,
-} from '@/components/ui/radio-group';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CreditCard, Banknote, ShoppingBag } from 'lucide-react';
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CreditCard, Banknote, ShoppingBag } from "lucide-react";
 
 // Form validation schema
 const formSchema = z.object({
-  fullName: z.string().min(2, 'Full name is required'),
-  contactNumber: z.string().min(5, 'Valid contact number is required'),
-  deliveryAddress: z.string().min(5, 'Delivery address is required'),
+  fullName: z.string().min(2, "Full name is required"),
+  contactNumber: z.string().min(5, "Valid contact number is required"),
+  deliveryAddress: z.string().min(5, "Delivery address is required"),
   saveInfo: z.boolean().default(false),
-  paymentMethod: z.enum(['credit_card', 'cash'], {
-    required_error: 'Please select a payment method',
+  paymentMethod: z.enum(["credit_card", "cash"], {
+    required_error: "Please select a payment method",
   }),
   cardNumber: z.string().optional(),
   cardExpiry: z.string().optional(),
@@ -42,39 +38,42 @@ const formSchema = z.object({
 });
 
 // Conditional validation for credit card fields
-const checkoutFormSchema = z.preprocess(
-  (data) => {
-    // If data is not an object, return it as is
-    if (typeof data !== 'object' || data === null) {
-      return data;
-    }
-    
-    // Cast to the expected shape to make TypeScript happy
-    const formData = data as z.infer<typeof formSchema>;
-    
-    // If payment method is credit card, card fields are required
-    if (formData.paymentMethod === 'credit_card') {
-      return {
-        ...formData,
-        cardNumber: z.string()
-          .min(13, 'Card number must be between 13-19 digits')
-          .max(19, 'Card number must be between 13-19 digits')
-          .regex(/^\d+$/, 'Card number must contain only digits')
-          .parse(formData.cardNumber),
-        cardExpiry: z.string()
-          .regex(/^(0[1-9]|1[0-2])\/([0-9]{2})$/, 'Expiry must be in MM/YY format')
-          .parse(formData.cardExpiry),
-        cardCvc: z.string()
-          .length(3, 'CVC must be 3 digits')
-          .regex(/^\d+$/, 'CVC must contain only digits')
-          .parse(formData.cardCvc),
-      };
-    }
-    
-    return formData;
-  },
-  formSchema
-);
+const checkoutFormSchema = z.preprocess((data) => {
+  // If data is not an object, return it as is
+  if (typeof data !== "object" || data === null) {
+    return data;
+  }
+
+  // Cast to the expected shape to make TypeScript happy
+  const formData = data as z.infer<typeof formSchema>;
+
+  // If payment method is credit card, card fields are required
+  if (formData.paymentMethod === "credit_card") {
+    return {
+      ...formData,
+      cardNumber: z
+        .string()
+        .min(13, "Card number must be between 13-19 digits")
+        .max(19, "Card number must be between 13-19 digits")
+        .regex(/^\d+$/, "Card number must contain only digits")
+        .parse(formData.cardNumber),
+      cardExpiry: z
+        .string()
+        .regex(
+          /^(0[1-9]|1[0-2])\/([0-9]{2})$/,
+          "Expiry must be in MM/YY format"
+        )
+        .parse(formData.cardExpiry),
+      cardCvc: z
+        .string()
+        .length(3, "CVC must be 3 digits")
+        .regex(/^\d+$/, "CVC must contain only digits")
+        .parse(formData.cardCvc),
+    };
+  }
+
+  return formData;
+}, formSchema);
 
 type CheckoutFormValues = z.infer<typeof formSchema>;
 
@@ -82,33 +81,33 @@ const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
   const { items, totalPrice, clearCart } = useCart();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // Initialize form
   const form = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutFormSchema),
     defaultValues: {
-      fullName: '',
-      contactNumber: '',
-      deliveryAddress: '',
+      fullName: "",
+      contactNumber: "",
+      deliveryAddress: "",
       saveInfo: false,
-      paymentMethod: 'cash',
-      cardNumber: '',
-      cardExpiry: '',
-      cardCvc: '',
+      paymentMethod: "cash",
+      cardNumber: "",
+      cardExpiry: "",
+      cardCvc: "",
     },
   });
-  
-  const watchPaymentMethod = form.watch('paymentMethod');
-  
+
+  const watchPaymentMethod = form.watch("paymentMethod");
+
   const onSubmit = async (values: CheckoutFormValues) => {
     if (items.length === 0) {
-      toast.error('Your cart is empty');
+      toast.error("Your cart is empty");
       return;
     }
-    
+
     try {
       setIsSubmitting(true);
-      
+
       // 1. Create user
       const userData: User = {
         full_name: values.fullName,
@@ -116,70 +115,74 @@ const CheckoutPage: React.FC = () => {
         saved_address: values.deliveryAddress,
         saved_info: values.saveInfo,
       };
-      
+
       const user = await apiService.createUser(userData);
-      
+
       // 2. Create order
       const orderData: Order = {
         user: user.id!,
         delivery_address: values.deliveryAddress,
         contact_phone: values.contactNumber,
-        total_price: totalPrice + 3.99, // Add delivery fee
+        total_price: Number((totalPrice + 3.99).toFixed(2)),
+        status: "pending",
       };
-      
+
       const order = await apiService.createOrder(orderData);
-      
+
       // 3. Process payment
       let paymentResult;
-      
-      if (values.paymentMethod === 'credit_card') {
+
+      if (values.paymentMethod === "credit_card") {
         paymentResult = await paymentService.processCreditCardPayment(
-          values.cardNumber || '',
-          values.cardExpiry || '',
-          values.cardCvc || '',
+          values.cardNumber || "",
+          values.cardExpiry || "",
+          values.cardCvc || "",
           orderData.total_price
         );
       } else {
-        paymentResult = await paymentService.processCashPayment(orderData.total_price);
+        paymentResult = await paymentService.processCashPayment(
+          orderData.total_price
+        );
       }
-      
+
       if (!paymentResult.success) {
-        throw new Error(paymentResult.error || 'Payment processing failed');
+        throw new Error(paymentResult.error || "Payment processing failed");
       }
-      
+
       // 4. Create payment record
       const paymentData: Payment = {
         order: order.id!,
         payment_method: values.paymentMethod,
         // Only include card details if paying by card
-        ...(values.paymentMethod === 'credit_card' && {
-          card_last_four: values.cardNumber?.slice(-4) || '',
+        ...(values.paymentMethod === "credit_card" && {
+          card_last_four: values.cardNumber?.slice(-4) || "",
           transaction_id: paymentResult.transactionId,
         }),
-        ...(values.paymentMethod === 'cash' && {
+        ...(values.paymentMethod === "cash" && {
           transaction_id: paymentResult.transactionId,
         }),
       };
-      
+
       await apiService.createPayment(paymentData);
-      
+
       // Success! Clear cart and redirect to confirmation
       clearCart();
-      toast.success('Order placed successfully!');
+      toast.success("Order placed successfully!");
       navigate(`/order-tracking?orderId=${order.id}`);
-      
     } catch (error) {
-      console.error('Checkout error:', error);
-      toast.error('There was a problem processing your order. Please try again.');
+      console.error("Checkout error:", error);
+      toast.error(
+        "There was a problem processing your order. Please try again."
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
-  
+
   return (
     <div className="pizza-container py-8">
       <h1 className="text-3xl font-bold text-center mb-8">Checkout</h1>
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Customer Information Form */}
         <div className="lg:col-span-2">
@@ -192,7 +195,10 @@ const CheckoutPage: React.FC = () => {
             </CardHeader>
             <CardContent>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-6"
+                >
                   <FormField
                     control={form.control}
                     name="fullName"
@@ -206,7 +212,7 @@ const CheckoutPage: React.FC = () => {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={form.control}
                     name="contactNumber"
@@ -220,7 +226,7 @@ const CheckoutPage: React.FC = () => {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={form.control}
                     name="deliveryAddress"
@@ -228,16 +234,16 @@ const CheckoutPage: React.FC = () => {
                       <FormItem>
                         <FormLabel>Delivery Address</FormLabel>
                         <FormControl>
-                          <Textarea 
-                            placeholder="Enter your full address" 
-                            {...field} 
+                          <Textarea
+                            placeholder="Enter your full address"
+                            {...field}
                           />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={form.control}
                     name="saveInfo"
@@ -257,7 +263,7 @@ const CheckoutPage: React.FC = () => {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={form.control}
                     name="paymentMethod"
@@ -294,8 +300,8 @@ const CheckoutPage: React.FC = () => {
                       </FormItem>
                     )}
                   />
-                  
-                  {watchPaymentMethod === 'credit_card' && (
+
+                  {watchPaymentMethod === "credit_card" && (
                     <div className="space-y-4 pt-2 border-t">
                       <FormField
                         control={form.control}
@@ -304,16 +310,16 @@ const CheckoutPage: React.FC = () => {
                           <FormItem>
                             <FormLabel>Card Number</FormLabel>
                             <FormControl>
-                              <Input 
-                                placeholder="4111 1111 1111 1111" 
-                                {...field} 
+                              <Input
+                                placeholder="4111 1111 1111 1111"
+                                {...field}
                               />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
-                      
+
                       <div className="grid grid-cols-2 gap-4">
                         <FormField
                           control={form.control}
@@ -328,7 +334,7 @@ const CheckoutPage: React.FC = () => {
                             </FormItem>
                           )}
                         />
-                        
+
                         <FormField
                           control={form.control}
                           name="cardCvc"
@@ -345,22 +351,22 @@ const CheckoutPage: React.FC = () => {
                       </div>
                     </div>
                   )}
-                  
+
                   <div className="pt-4 flex justify-between">
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={() => navigate('/cart')}
+                      onClick={() => navigate("/cart")}
                     >
                       Back to Cart
                     </Button>
-                    
-                    <Button 
-                      type="submit" 
+
+                    <Button
+                      type="submit"
                       className="bg-pizza-primary hover:bg-pizza-primary/90"
                       disabled={isSubmitting}
                     >
-                      {isSubmitting ? 'Processing...' : 'Place Order'}
+                      {isSubmitting ? "Processing..." : "Place Order"}
                     </Button>
                   </div>
                 </form>
@@ -368,7 +374,7 @@ const CheckoutPage: React.FC = () => {
             </CardContent>
           </Card>
         </div>
-        
+
         {/* Order Summary */}
         <div>
           <Card>
@@ -383,11 +389,12 @@ const CheckoutPage: React.FC = () => {
                       <div className="flex justify-between">
                         <div>
                           <span className="font-medium">
-                            {item.quantity} x {item.type === 'pizza' 
-                              ? item.pizza.pizza_name 
+                            {item.quantity} x{" "}
+                            {item.type === "pizza"
+                              ? item.pizza.pizza_name
                               : item.beverage.beverage_name}
                           </span>
-                          {item.type === 'pizza' && (
+                          {item.type === "pizza" && (
                             <p className="text-sm text-muted-foreground">
                               Size: {item.size.size_name}
                             </p>
@@ -398,7 +405,7 @@ const CheckoutPage: React.FC = () => {
                     </div>
                   ))}
                 </div>
-                
+
                 <div className="pt-4 border-t">
                   <div className="flex justify-between pb-2">
                     <span>Subtotal</span>
