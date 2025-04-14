@@ -1,4 +1,3 @@
-
 import { toast } from "@/components/ui/sonner";
 
 const API_URL = 'http://localhost:8000';
@@ -160,7 +159,23 @@ export const apiService = {
   getStoreInfo: () => fetchApi<StoreInfo[]>('store-info/'),
   
   // User endpoints
-  createUser: (userData: User) => fetchApi<User>('users/', 'POST', userData),
+  createUser: async (userData: User) => {
+    const response = await fetchApi<User>('users/', 'POST', userData);
+    // Save user data to localStorage
+    localStorage.setItem('savedUser', JSON.stringify(response));
+    return response;
+  },
+
+  // Get saved user from localStorage
+  getSavedUser: (): User | null => {
+    const savedUser = localStorage.getItem('savedUser');
+    return savedUser ? JSON.parse(savedUser) : null;
+  },
+
+  // Clear saved user from localStorage
+  clearSavedUser: () => {
+    localStorage.removeItem('savedUser');
+  },
   
   // Order endpoints
   createOrder: (orderData: Order) => fetchApi<Order>('orders/', 'POST', orderData),
