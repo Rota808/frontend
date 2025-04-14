@@ -15,13 +15,14 @@ const DeliveryMap: React.FC<DeliveryMapProps> = ({
 }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
-  const [token, setToken] = React.useState<string>('');
-  const [showTokenInput, setShowTokenInput] = React.useState<boolean>(true);
+  
+  // Replace this with your actual Mapbox token
+  const mapboxToken = 'pk.eyJ1IjoiZXhhbXBsZXRva2VuIiwiYSI6ImNreHh4eHh4eDAweHgydXFxcXFxcXFxcXEifQ.example';
 
   useEffect(() => {
-    if (!mapContainer.current || !token || !deliveryAddress) return;
+    if (!mapContainer.current || !deliveryAddress) return;
 
-    mapboxgl.accessToken = token;
+    mapboxgl.accessToken = mapboxToken;
 
     // Initialize map
     map.current = new mapboxgl.Map({
@@ -49,55 +50,7 @@ const DeliveryMap: React.FC<DeliveryMapProps> = ({
     return () => {
       map.current?.remove();
     };
-  }, [deliveryAddress, token, storeAddress]);
-
-  const handleTokenSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setShowTokenInput(false);
-  };
-
-  if (showTokenInput) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Configuração do Mapa</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleTokenSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium">
-                Digite seu token de acesso do Mapbox para exibir o mapa:
-              </label>
-              <input
-                type="text"
-                value={token}
-                onChange={(e) => setToken(e.target.value)}
-                className="w-full p-2 mt-1 border rounded"
-                placeholder="pk.eyJ1IjoieW91cnVzZXJuYW1lIiwiYSI6..."
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                Obtenha seu token gratuito em{" "}
-                <a
-                  href="https://mapbox.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline"
-                >
-                  mapbox.com
-                </a>
-              </p>
-            </div>
-            <button
-              type="submit"
-              className="bg-pizza-primary text-white py-2 px-4 rounded"
-            >
-              Carregar Mapa
-            </button>
-          </form>
-        </CardContent>
-      </Card>
-    );
-  }
+  }, [deliveryAddress, storeAddress, mapboxToken]);
 
   return (
     <div className="h-[400px] w-full rounded-lg overflow-hidden">

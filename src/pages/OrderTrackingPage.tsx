@@ -31,19 +31,21 @@ const OrderTrackingPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showMap, setShowMap] = useState(false);
   
-  const savedUser = localStorage.getItem('savedUser');
   const [userOrders, setUserOrders] = useState<Order[]>([]);
   
   useEffect(() => {
-    if (savedUser) {
-      const user = JSON.parse(savedUser);
-      apiService.getOrder(user.id)
-        .then(orders => {
-          setUserOrders(Array.isArray(orders) ? orders : []);
-        })
-        .catch(console.error);
+    const localOrders = apiService.getUserOrders();
+    setUserOrders(localOrders);
+    
+    const orderId = searchParams.get('orderId');
+    if (orderId) {
+      fetchOrder(orderId);
+    } else if (localOrders.length > 0) {
+      const mostRecentOrder = localOrders[localOrders.length - 1];
+      setOrderIdInput(String(mostRecentOrder.id));
+      fetchOrder(String(mostRecentOrder.id));
     }
-  }, []);
+  }, [searchParams]);
 
   const fetchOrder = async (id: string) => {
     if (!id) {
@@ -68,13 +70,6 @@ const OrderTrackingPage: React.FC = () => {
       setIsLoading(false);
     }
   };
-  
-  useEffect(() => {
-    const orderId = searchParams.get('orderId');
-    if (orderId) {
-      fetchOrder(orderId);
-    }
-  }, [searchParams]);
   
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -111,7 +106,7 @@ const OrderTrackingPage: React.FC = () => {
     <div className="pizza-container py-12">
       <h1 className="text-3xl font-bold text-center mb-8">Rastrear seu Pedido</h1>
       
-      {savedUser && userOrders.length > 0 && (
+      {userOrders.length > 0 && (
         <div className="max-w-xl mx-auto mb-8">
           <Card>
             <CardHeader>

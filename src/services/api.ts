@@ -1,3 +1,4 @@
+
 import { toast } from "@/components/ui/sonner";
 
 const API_URL = 'http://localhost:8000';
@@ -161,7 +162,7 @@ export const apiService = {
   // User endpoints
   createUser: async (userData: User) => {
     const response = await fetchApi<User>('users/', 'POST', userData);
-    // Save user data to localStorage
+    // Save user data and ID to localStorage
     localStorage.setItem('savedUser', JSON.stringify(response));
     return response;
   },
@@ -175,12 +176,34 @@ export const apiService = {
   // Clear saved user from localStorage
   clearSavedUser: () => {
     localStorage.removeItem('savedUser');
+    localStorage.removeItem('userOrders');
   },
   
   // Order endpoints
-  createOrder: (orderData: Order) => fetchApi<Order>('orders/', 'POST', orderData),
+  createOrder: async (orderData: Order) => {
+    const order = await fetchApi<Order>('orders/', 'POST', orderData);
+    
+    // Save the order ID to localStorage for tracking
+    const userOrders = getUserOrders();
+    userOrders.push(order);
+    localStorage.setItem('userOrders', JSON.stringify(userOrders));
+    
+    return order;
+  },
+  
   getOrder: (id: number) => fetchApi<Order>(`orders/${id}/`),
+  
+  // Get all user's orders from localStorage
+  getUserOrders: (): Order[] => {
+    return getUserOrders();
+  },
   
   // Payment endpoints
   createPayment: (paymentData: Payment) => fetchApi<Payment>('payments/', 'POST', paymentData),
 };
+
+// Helper to get user orders from localStorage
+function getUserOrders(): Order[] {
+  const ordersStr = localStorage.getItem('userOrders');
+  return ordersStr ? JSON.parse(ordersStr) : [];
+}
