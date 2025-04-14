@@ -4,10 +4,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { usePizzaAdmin } from '@/hooks/usePizzaAdmin';
 import { usePriceAdmin } from '@/hooks/usePriceAdmin';
 import { useSizeAdmin } from '@/hooks/useSizeAdmin';
+import { useStoreAdmin } from '@/hooks/useStoreAdmin';
 import { useDeleteConfirmation } from '@/hooks/useDeleteConfirmation';
 import PizzaSection from '@/components/admin/PizzaSection';
 import PriceSection from '@/components/admin/PriceSection';
 import SizeSection from '@/components/admin/SizeSection';
+import StoreSection from '@/components/admin/StoreSection';
 import DeleteConfirmationDialog from '@/components/admin/DeleteConfirmationDialog';
 
 const AdminPage: React.FC = () => {
@@ -15,6 +17,7 @@ const AdminPage: React.FC = () => {
   const pizzaAdmin = usePizzaAdmin();
   const priceAdmin = usePriceAdmin();
   const sizeAdmin = useSizeAdmin();
+  const storeAdmin = useStoreAdmin();
   
   // Delete confirmation management
   const deleteConfirmation = useDeleteConfirmation();
@@ -32,6 +35,10 @@ const AdminPage: React.FC = () => {
     deleteConfirmation.openDeleteDialog(id, 'size');
   };
 
+  const handleDeleteStore = (id: number) => {
+    deleteConfirmation.openDeleteDialog(id, 'store');
+  };
+
   // Handle confirmation of deletion
   const handleConfirmDelete = () => {
     if (!deleteConfirmation.itemToDelete) return;
@@ -44,23 +51,30 @@ const AdminPage: React.FC = () => {
       priceAdmin.confirmDeletePrice(id);
     } else if (type === 'size') {
       sizeAdmin.confirmDeleteSize(id);
+    } else if (type === 'store') {
+      storeAdmin.confirmDeleteStore(id);
     }
     
     deleteConfirmation.closeDeleteDialog();
   };
 
   // Check if any data is still loading
-  const isLoading = pizzaAdmin.isPizzasLoading || priceAdmin.isPricesLoading || sizeAdmin.isSizesLoading;
+  const isLoading = 
+    pizzaAdmin.isPizzasLoading || 
+    priceAdmin.isPricesLoading || 
+    sizeAdmin.isSizesLoading ||
+    storeAdmin.isStoresLoading;
 
   return (
     <div className="container py-8">
       <h1 className="text-3xl font-bold mb-8 text-center">Painel Administrativo</h1>
       
-      <Tabs defaultValue="pizzas">
-        <TabsList className="grid w-full max-w-md mx-auto grid-cols-3 mb-8">
-          <TabsTrigger value="pizzas">Gerenciar Pizzas</TabsTrigger>
-          <TabsTrigger value="prices">Gerenciar Preços</TabsTrigger>
-          <TabsTrigger value="sizes">Gerenciar Tamanhos</TabsTrigger>
+      <Tabs defaultValue="pizzas" className="w-full">
+        <TabsList className="w-full max-w-2xl mx-auto grid grid-cols-2 sm:grid-cols-4 mb-8">
+          <TabsTrigger value="pizzas" className="text-sm sm:text-base">Pizzas</TabsTrigger>
+          <TabsTrigger value="prices" className="text-sm sm:text-base">Preços</TabsTrigger>
+          <TabsTrigger value="sizes" className="text-sm sm:text-base">Tamanhos</TabsTrigger>
+          <TabsTrigger value="stores" className="text-sm sm:text-base">Lojas</TabsTrigger>
         </TabsList>
         
         <TabsContent value="pizzas">
@@ -117,6 +131,24 @@ const AdminPage: React.FC = () => {
             onDelete={handleDeleteSize}
             isSubmittingAdd={sizeAdmin.createSizeMutation.isPending}
             isSubmittingEdit={sizeAdmin.updateSizeMutation.isPending}
+          />
+        </TabsContent>
+
+        <TabsContent value="stores">
+          <StoreSection
+            stores={storeAdmin.stores}
+            isLoading={isLoading}
+            isAddOpen={storeAdmin.isAddStoreOpen}
+            setIsAddOpen={storeAdmin.setIsAddStoreOpen}
+            isEditOpen={storeAdmin.isEditStoreOpen}
+            setIsEditOpen={storeAdmin.setIsEditStoreOpen}
+            selectedStore={storeAdmin.selectedStore}
+            setSelectedStore={storeAdmin.setSelectedStore}
+            onAdd={storeAdmin.handleAddStore}
+            onEdit={storeAdmin.handleEditStore}
+            onDelete={handleDeleteStore}
+            isSubmittingAdd={storeAdmin.createStoreMutation.isPending}
+            isSubmittingEdit={storeAdmin.updateStoreMutation.isPending}
           />
         </TabsContent>
       </Tabs>
