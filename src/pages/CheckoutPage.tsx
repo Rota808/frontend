@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -21,16 +21,18 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CreditCard, Banknote, ShoppingBag } from "lucide-react";
+import { CreditCard, Banknote, ShoppingBag, QrCode } from "lucide-react";
+import QRCode from "react-qr-code";
+import PixQRCode from "@/components/PixQRCode";
 
 // Form validation schema
 const formSchema = z.object({
-  fullName: z.string().min(2, "Full name is required"),
-  contactNumber: z.string().min(5, "Valid contact number is required"),
-  deliveryAddress: z.string().min(5, "Delivery address is required"),
+  fullName: z.string().min(2, "Nome completo é obrigatório"),
+  contactNumber: z.string().min(5, "Número de contato válido é obrigatório"),
+  deliveryAddress: z.string().min(5, "Endereço de entrega é obrigatório"),
   saveInfo: z.boolean().default(false),
-  paymentMethod: z.enum(["credit_card", "cash"], {
-    required_error: "Please select a payment method",
+  paymentMethod: z.enum(["credit_card", "cash", "pix"], {
+    required_error: "Por favor selecione um método de pagamento",
   }),
   cardNumber: z.string().optional(),
   cardExpiry: z.string().optional(),
@@ -81,8 +83,9 @@ const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
   const { items, totalPrice, clearCart } = useCart();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [pixQRCode, setPixQRCode] = useState<string | null>(null);
 
-  // Initialize form
+  // Initialize form with default values
   const form = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutFormSchema),
     defaultValues: {
@@ -97,6 +100,17 @@ const CheckoutPage: React.FC = () => {
     },
   });
 
+  // Load saved user data on component mount
+  useEffect(() => {
+    const savedUser = apiService.getSavedUser();
+    if (savedUser) {
+      form.setValue('fullName', savedUser.full_name);
+      form.setValue('contactNumber', savedUser.contact_number);
+      form.setValue('deliveryAddress', savedUser.saved_address);
+      form.setValue('saveInfo', savedUser.saved_info);
+    }
+  }, [form]);
+
   const watchPaymentMethod = form.watch("paymentMethod");
 
   const onSubmit = async (values: CheckoutFormValues) => {
@@ -108,7 +122,7 @@ const CheckoutPage: React.FC = () => {
     try {
       setIsSubmitting(true);
 
-      // 1. Create user
+      // Create user
       const userData: User = {
         full_name: values.fullName,
         contact_number: values.contactNumber,
@@ -118,7 +132,7 @@ const CheckoutPage: React.FC = () => {
 
       const user = await apiService.createUser(userData);
 
-      // 2. Create order
+      // Create order
       const orderData: Order = {
         user: user.id!,
         delivery_address: values.deliveryAddress,
@@ -129,9 +143,8 @@ const CheckoutPage: React.FC = () => {
 
       const order = await apiService.createOrder(orderData);
 
-      // 3. Process payment
+      // Process payment based on method
       let paymentResult;
-
       if (values.paymentMethod === "credit_card") {
         paymentResult = await paymentService.processCreditCardPayment(
           values.cardNumber || "",
@@ -139,40 +152,46 @@ const CheckoutPage: React.FC = () => {
           values.cardCvc || "",
           orderData.total_price
         );
+      } else if (values.paymentMethod === "pix") {
+        paymentResult = await paymentService.processPixPayment(orderData.total_price);
+        if (paymentResult.success && paymentResult.pixQrCode) {
+          setPixQRCode(paymentResult.pixQrCode);
+        }
       } else {
-        paymentResult = await paymentService.processCashPayment(
-          orderData.total_price
-        );
+        paymentResult = await paymentService.processCashPayment(orderData.total_price);
       }
 
       if (!paymentResult.success) {
         throw new Error(paymentResult.error || "Payment processing failed");
       }
 
-      // 4. Create payment record
+      // Create payment record
       const paymentData: Payment = {
         order: order.id!,
         payment_method: values.paymentMethod,
-        // Only include card details if paying by card
+        transaction_id: paymentResult.transactionId,
         ...(values.paymentMethod === "credit_card" && {
           card_last_four: values.cardNumber?.slice(-4) || "",
-          transaction_id: paymentResult.transactionId,
         }),
-        ...(values.paymentMethod === "cash" && {
-          transaction_id: paymentResult.transactionId,
+        ...(values.paymentMethod === "pix" && {
+          pix_qr_code: paymentResult.pixQrCode,
         }),
       };
 
       await apiService.createPayment(paymentData);
 
-      // Success! Clear cart and redirect to confirmation
-      clearCart();
-      toast.success("Order placed successfully!");
-      navigate(`/order-tracking?orderId=${order.id}`);
+      if (values.paymentMethod !== "pix") {
+        // Only clear cart and redirect for non-PIX payments
+        clearCart();
+        toast.success("Pedido realizado com sucesso!");
+        navigate(`/order-tracking?orderId=${order.id}`);
+      } else {
+        toast.success("QR Code PIX gerado! Por favor, complete o pagamento.");
+      }
     } catch (error) {
       console.error("Checkout error:", error);
       toast.error(
-        "There was a problem processing your order. Please try again."
+        "Houve um problema ao processar seu pedido. Por favor, tente novamente."
       );
     } finally {
       setIsSubmitting(false);
@@ -269,7 +288,7 @@ const CheckoutPage: React.FC = () => {
                     name="paymentMethod"
                     render={({ field }) => (
                       <FormItem className="space-y-3">
-                        <FormLabel>Payment Method</FormLabel>
+                        <FormLabel>Método de Pagamento</FormLabel>
                         <FormControl>
                           <RadioGroup
                             onValueChange={field.onChange}
@@ -282,7 +301,7 @@ const CheckoutPage: React.FC = () => {
                               </FormControl>
                               <FormLabel className="font-normal flex items-center">
                                 <CreditCard className="mr-2 h-4 w-4" />
-                                Credit Card
+                                Cartão de Crédito
                               </FormLabel>
                             </FormItem>
                             <FormItem className="flex items-center space-x-3 space-y-0">
@@ -291,7 +310,16 @@ const CheckoutPage: React.FC = () => {
                               </FormControl>
                               <FormLabel className="font-normal flex items-center">
                                 <Banknote className="mr-2 h-4 w-4" />
-                                Cash on Delivery
+                                Dinheiro na Entrega
+                              </FormLabel>
+                            </FormItem>
+                            <FormItem className="flex items-center space-x-3 space-y-0">
+                              <FormControl>
+                                <RadioGroupItem value="pix" />
+                              </FormControl>
+                              <FormLabel className="font-normal flex items-center">
+                                <QrCode className="mr-2 h-4 w-4" />
+                                PIX
                               </FormLabel>
                             </FormItem>
                           </RadioGroup>
@@ -349,6 +377,12 @@ const CheckoutPage: React.FC = () => {
                           )}
                         />
                       </div>
+                    </div>
+                  )}
+
+                  {pixQRCode && watchPaymentMethod === "pix" && (
+                    <div className="mt-4">
+                      <PixQRCode value={pixQRCode} amount={totalPrice + 3.99} />
                     </div>
                   )}
 

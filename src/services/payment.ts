@@ -1,4 +1,3 @@
-
 // Payment service for handling Stripe payments
 // Note: This is a client-side implementation that would ideally
 // connect to a secure backend service
@@ -7,6 +6,7 @@ interface PaymentResult {
   success: boolean;
   error?: string;
   transactionId?: string;
+  pixQrCode?: string;
 }
 
 export const paymentService = {
@@ -76,6 +76,32 @@ export const paymentService = {
       return {
         success: false,
         error: 'Failed to record cash payment'
+      };
+    }
+  },
+  
+  // Process a PIX payment
+  processPixPayment: async (amount: number): Promise<PaymentResult> => {
+    try {
+      console.log('Processing PIX payment for amount:', amount);
+      
+      // This is a simulation of generating a PIX payment
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Generate mock transaction ID and QR code for the PIX payment
+      const transactionId = `PIX-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      const pixQrCode = `00020126580014br.gov.bcb.pix0136123e4567-e12b-12d1-a456-426655440000${amount}5204000053039865802BR5913Rota808 Pizza6008Sao Paulo62070503***63046DDC`;
+      
+      return {
+        success: true,
+        transactionId,
+        pixQrCode
+      };
+    } catch (error) {
+      console.error('PIX payment generation error:', error);
+      return {
+        success: false,
+        error: 'Failed to generate PIX payment'
       };
     }
   }

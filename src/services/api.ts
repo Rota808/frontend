@@ -1,4 +1,3 @@
-
 import { toast } from "@/components/ui/sonner";
 
 const API_URL = 'http://localhost:8000';
@@ -77,6 +76,7 @@ export interface Payment {
   payment_status?: string;
   card_last_four?: string;
   transaction_id?: string;
+  pix_qr_code?: string;
 }
 
 // Interface for pizza creation/update
