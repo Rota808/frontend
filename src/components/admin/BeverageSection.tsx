@@ -1,39 +1,37 @@
-
 import React from 'react';
-import { Pizza } from '@/services/api';
+import { Beverage } from '@/services/api';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import PizzaForm from '@/components/PizzaForm';
-import PizzaList from '@/components/PizzaList';
+import BeverageForm from '@/components/BeverageForm';
+import BeverageList from '@/components/BeverageList';
 import { Plus } from 'lucide-react';
+import { BeverageInput } from '@/hooks/useBeverageAdmin';
 
-interface PizzaSectionProps {
-  pizzas: Pizza[];
-  pizzaPrices: any[];
+interface BeverageSectionProps {
+  beverages: Beverage[];
   isLoading: boolean;
   isAddOpen: boolean;
   setIsAddOpen: (open: boolean) => void;
   isEditOpen: boolean;
   setIsEditOpen: (open: boolean) => void;
-  selectedPizza: Pizza | null;
-  setSelectedPizza: (pizza: Pizza | null) => void;
-  onAdd: (data: any) => Promise<void>;
-  onEdit: (data: any) => Promise<void>;
+  selectedBeverage: Beverage | null;
+  setSelectedBeverage: (beverage: Beverage | null) => void;
+  onAdd: (data: BeverageInput) => Promise<void>;
+  onEdit: (data: BeverageInput) => Promise<void>;
   onDelete: (id: number) => void;
   isSubmittingAdd: boolean;
   isSubmittingEdit: boolean;
 }
 
-const PizzaSection: React.FC<PizzaSectionProps> = ({
-  pizzas,
-  pizzaPrices,
+const BeverageSection: React.FC<BeverageSectionProps> = ({
+  beverages,
   isLoading,
   isAddOpen,
   setIsAddOpen,
   isEditOpen,
   setIsEditOpen,
-  selectedPizza,
-  setSelectedPizza,
+  selectedBeverage,
+  setSelectedBeverage,
   onAdd,
   onEdit,
   onDelete,
@@ -44,46 +42,49 @@ const PizzaSection: React.FC<PizzaSectionProps> = ({
     <>
       <div className="flex justify-end mb-4">
         <Button onClick={() => setIsAddOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" /> Adicionar Nova Pizza
+          <Plus className="mr-2 h-4 w-4" /> Adicionar Nova Bebida
         </Button>
       </div>
       
       {isLoading ? (
-        <div className="text-center py-8">Carregando pizzas...</div>
+        <div className="text-center py-8">Carregando bebidas...</div>
       ) : (
-        <PizzaList 
-          pizzas={pizzas} 
-          pizzaPrices={pizzaPrices}
-          onEdit={(pizza) => {
-            setSelectedPizza(pizza);
+        <BeverageList 
+          beverages={beverages}
+          onEdit={(beverage) => {
+            setSelectedBeverage(beverage);
             setIsEditOpen(true);
           }}
           onDelete={onDelete}
         />
       )}
 
-      {/* Add Pizza Dialog */}
+      {/* Add Beverage Dialog */}
       <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Adicionar Nova Pizza</DialogTitle>
+            <DialogTitle>Adicionar Nova Bebida</DialogTitle>
           </DialogHeader>
-          <PizzaForm 
+          <BeverageForm 
             onSubmit={onAdd} 
             isSubmitting={isSubmittingAdd}
           />
         </DialogContent>
       </Dialog>
       
-      {/* Edit Pizza Dialog */}
+      {/* Edit Beverage Dialog */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Editar Pizza</DialogTitle>
+            <DialogTitle>Editar Bebida</DialogTitle>
           </DialogHeader>
-          {selectedPizza && (
-            <PizzaForm 
-              defaultValues={selectedPizza}
+          {selectedBeverage && (
+            <BeverageForm 
+              defaultValues={{
+                beverage_name: selectedBeverage.beverage_name,
+                description: selectedBeverage.description,
+                price: selectedBeverage.price
+              }}
               onSubmit={onEdit} 
               isSubmitting={isSubmittingEdit}
             />
@@ -94,4 +95,4 @@ const PizzaSection: React.FC<PizzaSectionProps> = ({
   );
 };
 
-export default PizzaSection;
+export default BeverageSection;

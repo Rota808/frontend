@@ -21,7 +21,8 @@ export interface Beverage {
   id: number;
   beverage_name: string;
   description: string;
-  price: number;
+  price: number; // Mantido como number após a correção anterior
+  image_url?: string; // <-- Adicione esta linha (opcional)
 }
 
 export interface PizzaPrice {
@@ -100,6 +101,12 @@ export interface SizeInput {
   description: string;
 }
 
+export interface BeverageInput {
+  beverage_name: string;
+  description: string;
+  price: number;
+}
+
 // Generic fetch function with error handling
 async function fetchApi<T>(
   endpoint: string, 
@@ -134,6 +141,10 @@ async function fetchApi<T>(
 
 // API Service functions
 export const apiService = {
+  // Beverage endpoints
+  createBeverage: (data: BeverageInput) => fetchApi<Beverage>('beverages/', 'POST', data),
+  updateBeverage: (id: number, data: BeverageInput) => fetchApi<Beverage>(`beverages/${id}/`, 'PUT', data),
+  deleteBeverage: (id: number) => fetchApi<void>(`beverages/${id}/`, 'DELETE'),
   // Pizza endpoints
   getPizzas: () => fetchApi<Pizza[]>('pizzas/'),
   getPizza: (id: number) => fetchApi<Pizza>(`pizzas/${id}/`),

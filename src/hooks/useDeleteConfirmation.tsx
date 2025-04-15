@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 
-type ItemType = 'pizza' | 'price' | 'size' | 'store';
+type ItemType = 'pizza' | 'price' | 'size' | 'store' | 'beverage';
 
 interface DeleteItem {
   id: number;

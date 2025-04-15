@@ -1,15 +1,16 @@
-
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { usePizzaAdmin } from '@/hooks/usePizzaAdmin';
 import { usePriceAdmin } from '@/hooks/usePriceAdmin';
 import { useSizeAdmin } from '@/hooks/useSizeAdmin';
 import { useStoreAdmin } from '@/hooks/useStoreAdmin';
+import { useBeverageAdmin } from '@/hooks/useBeverageAdmin';
 import { useDeleteConfirmation } from '@/hooks/useDeleteConfirmation';
 import PizzaSection from '@/components/admin/PizzaSection';
 import PriceSection from '@/components/admin/PriceSection';
 import SizeSection from '@/components/admin/SizeSection';
 import StoreSection from '@/components/admin/StoreSection';
+import BeverageSection from '@/components/admin/BeverageSection';
 import DeleteConfirmationDialog from '@/components/admin/DeleteConfirmationDialog';
 
 const AdminPage: React.FC = () => {
@@ -18,6 +19,7 @@ const AdminPage: React.FC = () => {
   const priceAdmin = usePriceAdmin();
   const sizeAdmin = useSizeAdmin();
   const storeAdmin = useStoreAdmin();
+  const beverageAdmin = useBeverageAdmin();
   
   // Delete confirmation management
   const deleteConfirmation = useDeleteConfirmation();
@@ -38,6 +40,10 @@ const AdminPage: React.FC = () => {
   const handleDeleteStore = (id: number) => {
     deleteConfirmation.openDeleteDialog(id, 'store');
   };
+  
+  const handleDeleteBeverage = (id: number) => {
+    deleteConfirmation.openDeleteDialog(id, 'beverage');
+  };
 
   // Handle confirmation of deletion
   const handleConfirmDelete = () => {
@@ -53,6 +59,8 @@ const AdminPage: React.FC = () => {
       sizeAdmin.confirmDeleteSize(id);
     } else if (type === 'store') {
       storeAdmin.confirmDeleteStore(id);
+    } else if (type === 'beverage') {
+      beverageAdmin.confirmDeleteBeverage(id);
     }
     
     deleteConfirmation.closeDeleteDialog();
@@ -63,17 +71,19 @@ const AdminPage: React.FC = () => {
     pizzaAdmin.isPizzasLoading || 
     priceAdmin.isPricesLoading || 
     sizeAdmin.isSizesLoading ||
-    storeAdmin.isStoresLoading;
+    storeAdmin.isStoresLoading ||
+    beverageAdmin.isBeveragesLoading;
 
   return (
     <div className="container py-8">
       <h1 className="text-3xl font-bold mb-8 text-center">Painel Administrativo</h1>
       
       <Tabs defaultValue="pizzas" className="w-full">
-        <TabsList className="w-full max-w-2xl mx-auto grid grid-cols-2 sm:grid-cols-4 mb-8">
+        <TabsList className="w-full max-w-4xl mx-auto grid grid-cols-2 sm:grid-cols-5 mb-8">
           <TabsTrigger value="pizzas" className="text-sm sm:text-base">Pizzas</TabsTrigger>
           <TabsTrigger value="prices" className="text-sm sm:text-base">Preços</TabsTrigger>
           <TabsTrigger value="sizes" className="text-sm sm:text-base">Tamanhos</TabsTrigger>
+          <TabsTrigger value="beverages" className="text-sm sm:text-base">Bebidas</TabsTrigger>
           <TabsTrigger value="stores" className="text-sm sm:text-base">Lojas</TabsTrigger>
         </TabsList>
         
@@ -131,6 +141,24 @@ const AdminPage: React.FC = () => {
             onDelete={handleDeleteSize}
             isSubmittingAdd={sizeAdmin.createSizeMutation.isPending}
             isSubmittingEdit={sizeAdmin.updateSizeMutation.isPending}
+          />
+        </TabsContent>
+        
+        <TabsContent value="beverages">
+          <BeverageSection
+            beverages={beverageAdmin.beverages}
+            isLoading={isLoading}
+            isAddOpen={beverageAdmin.isAddBeverageOpen}
+            setIsAddOpen={beverageAdmin.setIsAddBeverageOpen}
+            isEditOpen={beverageAdmin.isEditBeverageOpen}
+            setIsEditOpen={beverageAdmin.setIsEditBeverageOpen}
+            selectedBeverage={beverageAdmin.selectedBeverage}
+            setSelectedBeverage={beverageAdmin.setSelectedBeverage}
+            onAdd={beverageAdmin.handleAddBeverage}
+            onEdit={beverageAdmin.handleEditBeverage}
+            onDelete={handleDeleteBeverage}
+            isSubmittingAdd={beverageAdmin.createBeverageMutation.isPending}
+            isSubmittingEdit={beverageAdmin.updateBeverageMutation.isPending}
           />
         </TabsContent>
 

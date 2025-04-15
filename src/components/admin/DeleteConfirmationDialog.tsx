@@ -15,7 +15,7 @@ interface DeleteConfirmationDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
-  itemType: 'pizza' | 'price' | 'size' | 'store' | null;
+  itemType: 'pizza' | 'price' | 'size' | 'store' | 'beverage' | null;
 }
 
 const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> = ({
@@ -34,6 +34,8 @@ const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> = ({
         return 'o tamanho';
       case 'store':
         return 'a loja';
+      case 'beverage':
+        return 'a bebida';
       default:
         return 'o item';
     }

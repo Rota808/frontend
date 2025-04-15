@@ -34,8 +34,17 @@ const BeverageCard: React.FC<BeverageCardProps> = ({ beverage }) => {
         </CardDescription>
       </CardHeader>
       <CardContent className="flex-grow">
-        <div className="w-full h-32 bg-muted rounded-md mb-4 flex items-center justify-center">
-          <span className="text-muted-foreground">Beverage Image</span>
+        <div className="w-full h-32 bg-muted rounded-md mb-4 flex items-center justify-center overflow-hidden">
+          {/* Substitua o span anterior por isto: */}
+          {beverage.image_url ? (
+            <img
+              src={beverage.image_url}
+              alt={beverage.beverage_name}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <span className="text-muted-foreground text-sm">Imagem Indisponível</span>
+          )}
         </div>
       </CardContent>
       <CardFooter className="flex justify-between items-center">
