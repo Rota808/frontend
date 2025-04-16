@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { PlusCircle } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { StoreInfo } from '@/services/api';
 import StoreForm from './StoreForm';
 import StoreList from './StoreList';
@@ -43,19 +43,14 @@ const StoreSection: React.FC<StoreSectionProps> = ({
   }
 
   return (
-    <div className="space-y-6">
-      <Card className="p-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-          <h2 className="text-2xl font-bold">Lojas</h2>
-          <Button
-            onClick={() => setIsAddOpen(true)}
-            className="w-full sm:w-auto"
-          >
-            <PlusCircle className="w-4 h-4 mr-2" />
-            Adicionar Loja
-          </Button>
-        </div>
-
+    <>
+      <div className="flex justify-end mb-4">
+        <Button onClick={() => setIsAddOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" /> Adicionar Nova Loja
+        </Button>
+      </div>
+      
+      <Card className="p-4 md:p-6">
         <StoreList
           stores={stores}
           onEdit={(store) => {
@@ -82,7 +77,7 @@ const StoreSection: React.FC<StoreSectionProps> = ({
         initialData={selectedStore}
         isSubmitting={isSubmittingEdit}
       />
-    </div>
+    </>
   );
 };
 
