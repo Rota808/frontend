@@ -21,24 +21,31 @@ const StoreList: React.FC<StoreListProps> = ({ stores, onEdit, onDelete }) => {
         stores.map((store) => (
           <div
             key={store.id}
-            className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 border rounded-lg"
+            className="flex flex-col border rounded-lg overflow-hidden"
           >
-            <div className="space-y-2 flex-1">
-              <div>
-                <h3 className="font-medium">Endereço:</h3>
-                <p className="text-sm text-muted-foreground">{store.address}</p>
+            {/* Header Section */}
+            <div className="bg-muted/50 p-4 flex flex-col gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <h3 className="text-sm font-medium text-muted-foreground">Endereço</h3>
+                  <p className="text-sm mt-1">{store.address}</p>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-muted-foreground">Telefone</h3>
+                  <p className="text-sm mt-1">{store.contact_phone}</p>
+                </div>
               </div>
               <div>
-                <h3 className="font-medium">Telefone:</h3>
-                <p className="text-sm text-muted-foreground">{store.contact_phone}</p>
+                <h3 className="text-sm font-medium text-muted-foreground">Instruções</h3>
+                <p className="text-sm mt-1">{store.directions}</p>
               </div>
             </div>
-            
-            <div className="flex gap-2 w-full sm:w-auto">
+
+            {/* Actions Section */}
+            <div className="border-t p-4 bg-background flex justify-end gap-2">
               <Button
                 variant="outline"
                 size="sm"
-                className="flex-1 sm:flex-none"
                 onClick={() => onEdit(store)}
               >
                 <Edit className="w-4 h-4 mr-2" />
@@ -47,7 +54,6 @@ const StoreList: React.FC<StoreListProps> = ({ stores, onEdit, onDelete }) => {
               <Button
                 variant="destructive"
                 size="sm"
-                className="flex-1 sm:flex-none"
                 onClick={() => onDelete(store.id)}
               >
                 <Trash className="w-4 h-4 mr-2" />
