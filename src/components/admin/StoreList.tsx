@@ -82,3 +82,4 @@ const StoreList: React.FC<StoreListProps> = ({ stores, onEdit, onDelete }) => {
 };
 
 export default StoreList;
+
