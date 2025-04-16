@@ -11,12 +11,6 @@ import {
   TableHeader,
   TableRow 
 } from '@/components/ui/table';
-import { 
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle 
-} from '@/components/ui/card';
 
 interface StoreListProps {
   stores: StoreInfo[];
@@ -26,60 +20,52 @@ interface StoreListProps {
 
 const StoreList: React.FC<StoreListProps> = ({ stores, onEdit, onDelete }) => {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Lojas Disponíveis</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Endereço</TableHead>
-              <TableHead>Telefone</TableHead>
-              <TableHead>Instruções</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Endereço</TableHead>
+          <TableHead>Telefone</TableHead>
+          <TableHead>Instruções</TableHead>
+          <TableHead className="text-right">Ações</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {stores.length === 0 ? (
+          <TableRow>
+            <TableCell colSpan={4} className="text-center py-4">
+              Nenhuma loja cadastrada
+            </TableCell>
+          </TableRow>
+        ) : (
+          stores.map((store) => (
+            <TableRow key={store.id}>
+              <TableCell className="font-medium">{store.address}</TableCell>
+              <TableCell>{store.contact_phone}</TableCell>
+              <TableCell className="max-w-xs truncate">{store.directions}</TableCell>
+              <TableCell className="text-right">
+                <div className="flex justify-end space-x-2">
+                  <Button 
+                    size="icon" 
+                    variant="outline" 
+                    onClick={() => onEdit(store)}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    size="icon" 
+                    variant="destructive" 
+                    onClick={() => onDelete(store.id)}
+                  >
+                    <Trash className="h-4 w-4" />
+                  </Button>
+                </div>
+              </TableCell>
             </TableRow>
-          </TableHeader>
-          <TableBody>
-            {stores.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={4} className="text-center py-4">
-                  Nenhuma loja cadastrada
-                </TableCell>
-              </TableRow>
-            ) : (
-              stores.map((store) => (
-                <TableRow key={store.id}>
-                  <TableCell className="font-medium">{store.address}</TableCell>
-                  <TableCell>{store.contact_phone}</TableCell>
-                  <TableCell className="max-w-xs truncate">{store.directions}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end space-x-2">
-                      <Button 
-                        size="icon" 
-                        variant="outline" 
-                        onClick={() => onEdit(store)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        size="icon" 
-                        variant="destructive" 
-                        onClick={() => onDelete(store.id)}
-                      >
-                        <Trash className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+          ))
+        )}
+      </TableBody>
+    </Table>
   );
 };
 
 export default StoreList;
-
