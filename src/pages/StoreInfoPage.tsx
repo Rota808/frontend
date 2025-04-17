@@ -16,14 +16,14 @@ const StoreInfoPage: React.FC = () => {
 
   return (
     <div className="pizza-container py-8">
-      <h1 className="text-3xl font-bold text-center mb-2">Store Information</h1>
-      <p className="text-center text-muted-foreground mb-8">Find us and visit our store</p>
+      <h1 className="text-3xl font-bold text-center mb-2">Informações da Loja</h1>
+      <p className="text-center text-muted-foreground mb-8">Encontre-nos e visite nossa loja</p>
 
       {isLoading ? (
-        <div className="text-center py-8">Loading store information...</div>
+        <div className="text-center py-8">Carregando informações da loja...</div>
       ) : error ? (
         <div className="text-center py-8 text-destructive">
-          Error loading store information. Please try again later.
+          Erro ao carregar informações da loja. Por favor, tente novamente mais tarde.
         </div>
       ) : firstStore ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -32,7 +32,7 @@ const StoreInfoPage: React.FC = () => {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <MapPin className="mr-2 h-5 w-5 text-pizza-primary" />
-                  Address
+                  Endereço
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -44,7 +44,7 @@ const StoreInfoPage: React.FC = () => {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Info className="mr-2 h-5 w-5 text-pizza-primary" />
-                  How to Find Us
+                  Como Nos Encontrar
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -56,11 +56,11 @@ const StoreInfoPage: React.FC = () => {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Phone className="mr-2 h-5 w-5 text-pizza-primary" />
-                  Contact
+                  Contato
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p>Phone: {firstStore.contact_phone}</p>
+                <p>Telefone: {firstStore.contact_phone}</p>
               </CardContent>
             </Card>
 
@@ -68,21 +68,21 @@ const StoreInfoPage: React.FC = () => {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Clock className="mr-2 h-5 w-5 text-pizza-primary" />
-                  Opening Hours
+                  Horário de Funcionamento
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span>Monday - Friday</span>
+                    <span>Segunda a Sexta</span>
                     <span className="font-medium">11:00 AM - 10:00 PM</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Saturday</span>
+                    <span>Sábado</span>
                     <span className="font-medium">10:00 AM - 11:00 PM</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Sunday</span>
+                    <span>Domingo</span>
                     <span className="font-medium">12:00 PM - 9:00 PM</span>
                   </div>
                 </div>
@@ -97,7 +97,7 @@ const StoreInfoPage: React.FC = () => {
           />
         </div>
       ) : (
-        <div className="text-center py-8">No store information available.</div>
+        <div className="text-center py-8">Nenhuma informação da loja disponível.</div>
       )}
     </div>
   );
