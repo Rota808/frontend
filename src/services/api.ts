@@ -1,6 +1,6 @@
 import { toast } from "@/components/ui/sonner";
 
-const API_URL = 'https://es2back-f9bra3hfdua8cfa7.francecentral-01.azurewebsites.net/';
+const API_URL = 'https://es2back-f9bra3hfdua8cfa7.francecentral-01.azurewebsites.net';
 
 // Types based on Django models
 export interface Pizza {
