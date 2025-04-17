@@ -6,6 +6,7 @@ import * as z from "zod";
 import { toast } from "@/components/ui/sonner";
 import { apiService, User, Order, OrderItem, Payment } from "@/services/api";
 import { paymentService } from "@/services/payment";
+import { ORDER_STATUS } from "@/services/orderStatus";
 import { useCart } from "@/contexts/CartContext";
 import {
   Form,
@@ -22,10 +23,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CreditCard, Banknote, ShoppingBag, QrCode } from "lucide-react";
-import QRCode from "react-qr-code";
 import PixQRCode from "@/components/PixQRCode";
 
-// Form validation schema
 const formSchema = z.object({
   fullName: z.string().min(2, "Nome completo é obrigatório"),
   contactNumber: z.string().min(5, "Número de contato válido é obrigatório"),
@@ -39,17 +38,13 @@ const formSchema = z.object({
   cardCvc: z.string().optional(),
 });
 
-// Conditional validation for credit card fields
 const checkoutFormSchema = z.preprocess((data) => {
-  // If data is not an object, return it as is
   if (typeof data !== "object" || data === null) {
     return data;
   }
 
-  // Cast to the expected shape to make TypeScript happy
   const formData = data as z.infer<typeof formSchema>;
 
-  // If payment method is credit card, card fields are required
   if (formData.paymentMethod === "credit_card") {
     return {
       ...formData,
@@ -84,8 +79,8 @@ const CheckoutPage: React.FC = () => {
   const { items, totalPrice, clearCart } = useCart();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [pixQRCode, setPixQRCode] = useState<string | null>(null);
+  const [createdOrderId, setCreatedOrderId] = useState<number | null>(null);
 
-  // Initialize form with default values
   const form = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutFormSchema),
     defaultValues: {
@@ -100,7 +95,6 @@ const CheckoutPage: React.FC = () => {
     },
   });
 
-  // Load saved user data on component mount
   useEffect(() => {
     const savedUser = apiService.getSavedUser();
     if (savedUser) {
@@ -122,7 +116,6 @@ const CheckoutPage: React.FC = () => {
     try {
       setIsSubmitting(true);
 
-      // Create user
       const userData: User = {
         full_name: values.fullName,
         contact_number: values.contactNumber,
@@ -132,40 +125,49 @@ const CheckoutPage: React.FC = () => {
 
       const user = await apiService.createUser(userData);
 
-      // Create order
+      const initialStatus = values.paymentMethod === "cash" 
+        ? ORDER_STATUS.PENDING
+        : ORDER_STATUS.PAYMENT_PENDING;
+
       const orderData: Order = {
         user: user.id!,
         delivery_address: values.deliveryAddress,
         contact_phone: values.contactNumber,
         total_price: Number((totalPrice + 3.99).toFixed(2)),
-        status: "pending",
+        status: initialStatus,
       };
 
       const order = await apiService.createOrder(orderData);
+      setCreatedOrderId(order.id);
 
-      // Process payment based on method
       let paymentResult;
       if (values.paymentMethod === "credit_card") {
         paymentResult = await paymentService.processCreditCardPayment(
           values.cardNumber || "",
           values.cardExpiry || "",
           values.cardCvc || "",
-          orderData.total_price
+          orderData.total_price,
+          order.id
         );
       } else if (values.paymentMethod === "pix") {
-        paymentResult = await paymentService.processPixPayment(orderData.total_price);
+        paymentResult = await paymentService.processPixPayment(
+          orderData.total_price,
+          order.id
+        );
         if (paymentResult.success && paymentResult.pixQrCode) {
           setPixQRCode(paymentResult.pixQrCode);
         }
       } else {
-        paymentResult = await paymentService.processCashPayment(orderData.total_price);
+        paymentResult = await paymentService.processCashPayment(
+          orderData.total_price,
+          order.id
+        );
       }
 
       if (!paymentResult.success) {
         throw new Error(paymentResult.error || "Payment processing failed");
       }
 
-      // Create payment record
       const paymentData: Payment = {
         order: order.id!,
         payment_method: values.paymentMethod,
@@ -181,7 +183,6 @@ const CheckoutPage: React.FC = () => {
       await apiService.createPayment(paymentData);
 
       if (values.paymentMethod !== "pix") {
-        // Only clear cart and redirect for non-PIX payments
         clearCart();
         toast.success("Pedido realizado com sucesso!");
         navigate(`/order-tracking?orderId=${order.id}`);
@@ -198,12 +199,33 @@ const CheckoutPage: React.FC = () => {
     }
   };
 
+  const handleCompletePIXPayment = async () => {
+    if (!createdOrderId) return;
+    
+    try {
+      setIsSubmitting(true);
+      const result = await paymentService.confirmPixPayment(createdOrderId);
+      
+      if (result.success) {
+        clearCart();
+        toast.success("Pagamento PIX confirmado! Seu pedido está sendo preparado.");
+        navigate(`/order-tracking?orderId=${createdOrderId}`);
+      } else {
+        toast.error(result.error || "Erro ao confirmar pagamento");
+      }
+    } catch (error) {
+      console.error("Error confirming payment:", error);
+      toast.error("Houve um erro ao confirmar o pagamento");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="pizza-container py-8">
       <h1 className="text-3xl font-bold text-center mb-8">Checkout</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Customer Information Form */}
         <div className="lg:col-span-2">
           <Card>
             <CardHeader>
@@ -380,9 +402,20 @@ const CheckoutPage: React.FC = () => {
                     </div>
                   )}
 
-                  {pixQRCode && watchPaymentMethod === "pix" && (
+                  {pixQRCode && form.watch("paymentMethod") === "pix" && (
                     <div className="mt-4">
                       <PixQRCode value={pixQRCode} amount={totalPrice + 3.99} />
+                      <Button
+                        type="button"
+                        className="mt-4 w-full bg-green-600 hover:bg-green-700"
+                        onClick={handleCompletePIXPayment}
+                        disabled={isSubmitting}
+                      >
+                        {isSubmitting ? "Processando..." : "Confirmar Pagamento PIX"}
+                      </Button>
+                      <p className="text-xs text-center mt-2 text-muted-foreground">
+                        Clique para simular a confirmação do pagamento PIX
+                      </p>
                     </div>
                   )}
 
@@ -398,7 +431,7 @@ const CheckoutPage: React.FC = () => {
                     <Button
                       type="submit"
                       className="bg-pizza-primary hover:bg-pizza-primary/90"
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || !!pixQRCode}
                     >
                       {isSubmitting ? "Processing..." : "Place Order"}
                     </Button>
@@ -409,7 +442,6 @@ const CheckoutPage: React.FC = () => {
           </Card>
         </div>
 
-        {/* Order Summary */}
         <div>
           <Card>
             <CardHeader>

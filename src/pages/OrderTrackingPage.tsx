@@ -1,6 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { apiService, Order } from '@/services/api';
+import { paymentService } from '@/services/payment';
+import { orderStatusService, ORDER_STATUS } from '@/services/orderStatus';
 import { 
   Card, 
   CardContent, 
@@ -19,7 +22,9 @@ import {
   SearchIcon,
   Pizza,
   Coffee,
-  Map
+  Map,
+  RefreshCw,
+  CreditCard
 } from 'lucide-react';
 import DeliveryMap from '@/components/DeliveryMap';
 
@@ -30,6 +35,7 @@ const OrderTrackingPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showMap, setShowMap] = useState(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   
   const [userOrders, setUserOrders] = useState<Order[]>([]);
   
@@ -77,13 +83,43 @@ const OrderTrackingPage: React.FC = () => {
     fetchOrder(orderIdInput);
   };
   
+  const confirmPixPayment = async () => {
+    if (!order || !order.id) return;
+    
+    try {
+      setIsProcessingPayment(true);
+      const result = await paymentService.confirmPixPayment(order.id);
+      
+      if (result.success) {
+        toast.success("Pagamento PIX confirmado!");
+        fetchOrder(String(order.id));
+      } else {
+        toast.error(result.error || "Erro ao confirmar pagamento PIX");
+      }
+    } catch (error) {
+      console.error("Erro ao confirmar pagamento:", error);
+      toast.error("Ocorreu um erro ao confirmar o pagamento");
+    } finally {
+      setIsProcessingPayment(false);
+    }
+  };
+  
+  const handleRefreshOrder = () => {
+    if (order && order.id) {
+      fetchOrder(String(order.id));
+    }
+  };
+  
   const getStatusIcon = (status: string | undefined) => {
     switch (status) {
-      case 'completed':
+      case ORDER_STATUS.COMPLETED:
         return <CheckCircle2 className="h-10 w-10 text-pizza-success" />;
-      case 'pending':
+      case ORDER_STATUS.IN_TRANSIT:
+        return <TruckIcon className="h-10 w-10 text-pizza-primary" />;
+      case ORDER_STATUS.PENDING:
+      case ORDER_STATUS.PAYMENT_PENDING:
         return <Clock className="h-10 w-10 text-pizza-secondary" />;
-      case 'canceled':
+      case ORDER_STATUS.CANCELED:
         return <XCircle className="h-10 w-10 text-destructive" />;
       default:
         return <Clock className="h-10 w-10 text-pizza-secondary" />;
@@ -92,16 +128,39 @@ const OrderTrackingPage: React.FC = () => {
   
   const getStatusText = (status: string | undefined) => {
     switch (status) {
-      case 'completed':
+      case ORDER_STATUS.COMPLETED:
         return 'Entregue';
-      case 'pending':
+      case ORDER_STATUS.IN_TRANSIT:
         return 'Em trânsito';
-      case 'canceled':
+      case ORDER_STATUS.PENDING:
+        return 'Preparando';
+      case ORDER_STATUS.PAYMENT_PENDING:
+        return 'Aguardando pagamento';
+      case ORDER_STATUS.CANCELED:
         return 'Cancelado';
       default:
         return 'Em processamento';
     }
   };
+  
+  const getDeliveryProgress = (status: string | undefined) => {
+    switch (status) {
+      case ORDER_STATUS.COMPLETED:
+        return "w-full";
+      case ORDER_STATUS.IN_TRANSIT:
+        return "w-2/3";
+      case ORDER_STATUS.PAYMENT_PENDING:
+        return "w-1/4";
+      case ORDER_STATUS.PENDING:
+        return "w-1/3";
+      case ORDER_STATUS.CANCELED:
+        return "w-0";
+      default:
+        return "w-1/3";
+    }
+  };
+  
+  const isAwaitingPayment = order?.status === ORDER_STATUS.PAYMENT_PENDING;
   
   return (
     <div className="pizza-container py-12">
@@ -201,8 +260,16 @@ const OrderTrackingPage: React.FC = () => {
                   Realizado em {new Date(order.order_date || '').toLocaleString()}
                 </CardDescription>
               </div>
-              <div className="flex items-center">
+              <div className="flex items-center gap-2">
                 {getStatusIcon(order.status)}
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={handleRefreshOrder}
+                  className="h-9 w-9 rounded-full"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                </Button>
               </div>
             </CardHeader>
             <CardContent>
@@ -229,14 +296,14 @@ const OrderTrackingPage: React.FC = () => {
                   <div className="overflow-hidden h-2 text-xs flex rounded bg-muted mb-2">
                     <div 
                       className={`shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-pizza-primary ${
-                        order.status === 'completed' ? 'w-full' : 
-                        order.status === 'pending' ? 'w-2/3' : 'w-1/3'
+                        getDeliveryProgress(order.status)
                       }`}
                     ></div>
                   </div>
                   
                   <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>Enviado</span>
+                    <span>Pedido Confirmado</span>
+                    <span>Em Preparação</span>
                     <span>Em Trânsito</span>
                     <span>Entregue</span>
                   </div>
@@ -244,14 +311,43 @@ const OrderTrackingPage: React.FC = () => {
                 
                 <div className="mt-6 p-4 bg-muted rounded-lg">
                   <div className="flex items-center">
-                    <TruckIcon className="h-5 w-5 mr-2 text-pizza-primary" />
-                    <span>
-                      {order.status === 'completed' 
-                        ? 'Seu pedido foi entregue' 
-                        : `Tempo estimado de entrega: ${order.estimated_delivery_time || 'Aproximadamente 30 minutos'}`
-                      }
-                    </span>
+                    {order.status === ORDER_STATUS.COMPLETED ? (
+                      <>
+                        <CheckCircle2 className="h-5 w-5 mr-2 text-pizza-success" />
+                        <span>Seu pedido foi entregue</span>
+                      </>
+                    ) : order.status === ORDER_STATUS.IN_TRANSIT ? (
+                      <>
+                        <TruckIcon className="h-5 w-5 mr-2 text-pizza-primary" />
+                        <span>Seu pedido está a caminho - {order.estimated_delivery_time || 'Aproximadamente 20 minutos'}</span>
+                      </>
+                    ) : order.status === ORDER_STATUS.PAYMENT_PENDING ? (
+                      <>
+                        <CreditCard className="h-5 w-5 mr-2 text-pizza-secondary" />
+                        <span>Aguardando confirmação de pagamento</span>
+                      </>
+                    ) : (
+                      <>
+                        <Clock className="h-5 w-5 mr-2 text-pizza-secondary" />
+                        <span>Seu pedido está sendo preparado</span>
+                      </>
+                    )}
                   </div>
+                  
+                  {isAwaitingPayment && (
+                    <div className="mt-4">
+                      <Button
+                        onClick={confirmPixPayment}
+                        className="bg-pizza-primary hover:bg-pizza-primary/90 w-full"
+                        disabled={isProcessingPayment}
+                      >
+                        {isProcessingPayment ? 'Processando...' : 'Confirmar Pagamento PIX'}
+                      </Button>
+                      <p className="text-xs text-center mt-2 text-muted-foreground">
+                        Clique para simular a confirmação do pagamento PIX
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
               
