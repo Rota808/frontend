@@ -75,15 +75,15 @@ const StoreInfoPage: React.FC = () => {
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span>Segunda a Sexta</span>
-                    <span className="font-medium">11:00 AM - 10:00 PM</span>
+                    <span className="font-medium">11:00 - 22:00</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Sábado</span>
-                    <span className="font-medium">10:00 AM - 11:00 PM</span>
+                    <span className="font-medium">10:00 - 23:00</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Domingo</span>
-                    <span className="font-medium">12:00 PM - 9:00 PM</span>
+                    <span className="font-medium">12:00 - 21:00</span>
                   </div>
                 </div>
               </CardContent>
@@ -92,8 +92,8 @@ const StoreInfoPage: React.FC = () => {
 
           <StoreMap
             storeAddress={firstStore.address}
-            storeLat={40.7128}  // Replace with actual store coordinates
-            storeLng={-74.0060} // Replace with actual store coordinates
+            storeLat={-23.5505}  // Coordenadas para São Paulo
+            storeLng={-46.6333} // Coordenadas para São Paulo
           />
         </div>
       ) : (

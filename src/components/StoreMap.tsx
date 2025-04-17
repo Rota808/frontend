@@ -27,15 +27,15 @@ interface StoreMapProps {
 
 const StoreMap: React.FC<StoreMapProps> = ({
   storeAddress,
-  storeLat = 40.7128, // Default to NYC coordinates
-  storeLng = -74.006,
+  storeLat = -23.5505, // Default para São Paulo
+  storeLng = -46.6333,
 }) => {
   const position: [number, number] = [storeLat, storeLng];
 
   return (
     <Card className="overflow-hidden">
       <CardHeader>
-        <CardTitle>Store Location</CardTitle>
+        <CardTitle>Localização da Loja</CardTitle>
       </CardHeader>
       <CardContent className="p-0">
         <div className="h-[400px] w-full">
