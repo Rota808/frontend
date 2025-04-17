@@ -1,8 +1,22 @@
 
-import React, { useEffect, useRef } from 'react';
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React from 'react';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+
+// Fix for Leaflet marker icons
+import icon from 'leaflet/dist/images/marker-icon.png';
+import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+
+// Fix default icon issue in Leaflet
+let DefaultIcon = L.icon({
+  iconUrl: icon,
+  shadowUrl: iconShadow,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41]
+});
+
+L.Marker.prototype.options.icon = DefaultIcon;
 
 interface DeliveryMapProps {
   deliveryAddress: string;
@@ -13,48 +27,33 @@ const DeliveryMap: React.FC<DeliveryMapProps> = ({
   deliveryAddress,
   storeAddress = "Rua da Pizza, 123, São Paulo, SP" 
 }) => {
-  const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
+  // São Paulo default coordinates
+  const storePosition: [number, number] = [-23.5505, -46.6333];
+  const deliveryPosition: [number, number] = [-23.5605, -46.6433]; // Slightly offset for demo
   
-  // Replace this with your actual Mapbox token
-  const mapboxToken = 'pk.eyJ1IjoiZXhhbXBsZXRva2VuIiwiYSI6ImNreHh4eHh4eDAweHgydXFxcXFxcXFxcXEifQ.example';
-
-  useEffect(() => {
-    if (!mapContainer.current || !deliveryAddress) return;
-
-    mapboxgl.accessToken = mapboxToken;
-
-    // Initialize map
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/streets-v11',
-      zoom: 12,
-      center: [-46.6333, -23.5505], // São Paulo coordinates
-    });
-
-    // Add markers for store and delivery address
-    new mapboxgl.Marker({ color: '#ef4444' })
-      .setLngLat([-46.6333, -23.5505])
-      .setPopup(new mapboxgl.Popup().setHTML(`<h3>Rota808</h3><p>${storeAddress}</p>`))
-      .addTo(map.current);
-
-    // In a real app, we would geocode the delivery address
-    new mapboxgl.Marker({ color: '#22c55e' })
-      .setLngLat([-46.6433, -23.5605])
-      .setPopup(new mapboxgl.Popup().setHTML(`<h3>Endereço de Entrega</h3><p>${deliveryAddress}</p>`))
-      .addTo(map.current);
-
-    // Add navigation controls
-    map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
-
-    return () => {
-      map.current?.remove();
-    };
-  }, [deliveryAddress, storeAddress, mapboxToken]);
-
   return (
     <div className="h-[400px] w-full rounded-lg overflow-hidden">
-      <div ref={mapContainer} className="h-full w-full" />
+      <MapContainer 
+        center={storePosition} 
+        zoom={13} 
+        style={{ height: '100%', width: '100%' }}
+        scrollWheelZoom={false}
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        <Marker position={storePosition}>
+          <Popup>
+            <b>Rota808</b><br />{storeAddress}
+          </Popup>
+        </Marker>
+        <Marker position={deliveryPosition}>
+          <Popup>
+            <b>Endereço de Entrega</b><br />{deliveryAddress}
+          </Popup>
+        </Marker>
+      </MapContainer>
     </div>
   );
 };
