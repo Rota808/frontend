@@ -35,13 +35,14 @@ const OrderTrackingPage: React.FC = () => {
   
   useEffect(() => {
     const localOrders = apiService.getUserOrders();
-    setUserOrders(localOrders);
+    const recentOrders = localOrders.slice(-2);
+    setUserOrders(recentOrders);
     
     const orderId = searchParams.get('orderId');
     if (orderId) {
       fetchOrder(orderId);
-    } else if (localOrders.length > 0) {
-      const mostRecentOrder = localOrders[localOrders.length - 1];
+    } else if (recentOrders.length > 0) {
+      const mostRecentOrder = recentOrders[recentOrders.length - 1];
       setOrderIdInput(String(mostRecentOrder.id));
       fetchOrder(String(mostRecentOrder.id));
     }
