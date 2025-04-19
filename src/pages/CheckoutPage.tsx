@@ -82,6 +82,7 @@ const CheckoutPage: React.FC = () => {
   const [pixQRCode, setPixQRCode] = useState<string | null>(null);
   const [createdOrderId, setCreatedOrderId] = useState<number | null>(null);
   const [preferenceId, setPreferenceId] = useState<string | null>(null);
+  const [isOrderPlaced, setIsOrderPlaced] = useState(false);
 
   const form = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutFormSchema),
@@ -117,6 +118,7 @@ const CheckoutPage: React.FC = () => {
 
     try {
       setIsSubmitting(true);
+      setIsOrderPlaced(true);
 
       const userData: User = {
         full_name: values.fullName,
@@ -333,15 +335,6 @@ const CheckoutPage: React.FC = () => {
                                 MercadoPago
                               </FormLabel>
                             </FormItem>
-                            {/* <FormItem className="flex items-center space-x-3 space-y-0">
-                              <FormControl>
-                                <RadioGroupItem value="credit_card" />
-                              </FormControl>
-                              <FormLabel className="font-normal flex items-center">
-                                <CreditCard className="mr-2 h-4 w-4" />
-                                Cartão de Crédito
-                              </FormLabel>
-                            </FormItem> */}
                             <FormItem className="flex items-center space-x-3 space-y-0">
                               <FormControl>
                                 <RadioGroupItem value="cash" />
@@ -351,15 +344,6 @@ const CheckoutPage: React.FC = () => {
                                 Dinheiro na Entrega
                               </FormLabel>
                             </FormItem>
-                            {/* <FormItem className="flex items-center space-x-3 space-y-0">
-                              <FormControl>
-                                <RadioGroupItem value="pix" />
-                              </FormControl>
-                              <FormLabel className="font-normal flex items-center">
-                                <QrCode className="mr-2 h-4 w-4" />
-                                PIX
-                              </FormLabel>
-                            </FormItem> */}
                           </RadioGroup>
                         </FormControl>
                         <FormMessage />
@@ -388,6 +372,7 @@ const CheckoutPage: React.FC = () => {
                           email: "", // Provide user email if available
                           phone: form.getValues("contactNumber"),
                         }}
+                        orderPlaced={isOrderPlaced}
                       />
                     </div>
                   )}

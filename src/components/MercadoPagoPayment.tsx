@@ -1,4 +1,4 @@
-// components/MercadoPagoPayment.tsx
+
 import { initMercadoPago, Wallet } from "@mercadopago/sdk-react";
 import React, { useEffect, useState } from "react";
 import { Button } from "./ui/button";
@@ -21,6 +21,7 @@ interface MercadoPagoPaymentProps {
     phone: string;
   };
   onReady?: () => void;
+  orderPlaced: boolean; // New prop to control when to show errors
 }
 
 const MercadoPagoPayment: React.FC<MercadoPagoPaymentProps> = ({
@@ -28,6 +29,7 @@ const MercadoPagoPayment: React.FC<MercadoPagoPaymentProps> = ({
   cartItems,
   userInfo,
   onReady,
+  orderPlaced,
 }) => {
   const [isInitializing, setIsInitializing] = useState(true);
   const [preferenceId, setPreferenceId] = useState<string | null>(null);
@@ -82,7 +84,6 @@ const MercadoPagoPayment: React.FC<MercadoPagoPaymentProps> = ({
       console.error("Payment error:", err);
       setError(err instanceof Error ? err.message : "Erro desconhecido");
 
-      // Auto-retry logic (3 attempts)
       if (retryCount < 3) {
         setTimeout(() => {
           setRetryCount(retryCount + 1);
@@ -105,16 +106,18 @@ const MercadoPagoPayment: React.FC<MercadoPagoPaymentProps> = ({
           <Loader2 className="h-4 w-4 animate-spin" />
           {retryCount > 0 ? "Tentando novamente..." : "Preparando pagamento..."}
         </Button>
-        <p className="text-sm text-muted-foreground">
-          {retryCount > 0
-            ? `Tentativa ${retryCount} de 3`
-            : "Estabelecendo conexão segura"}
-        </p>
+        {orderPlaced && (
+          <p className="text-sm text-muted-foreground">
+            {retryCount > 0
+              ? `Tentativa ${retryCount} de 3`
+              : "Estabelecendo conexão segura"}
+          </p>
+        )}
       </div>
     );
   }
 
-  if (error) {
+  if (error && orderPlaced) {
     return (
       <div className="flex flex-col items-center gap-4 p-4">
         <Button variant="destructive" disabled>
@@ -143,14 +146,18 @@ const MercadoPagoPayment: React.FC<MercadoPagoPaymentProps> = ({
             onReady={() => console.log("MercadoPago Wallet ready")}
             onError={(error) => {
               console.error("MercadoPago error:", error);
-              setError("Falha ao carregar o método de pagamento");
+              if (orderPlaced) {
+                setError("Falha ao carregar o método de pagamento");
+              }
             }}
           />
         )}
       </div>
-      <p className="text-xs text-muted-foreground text-center">
-        Pagamento 100% seguro via Mercado Pago
-      </p>
+      {orderPlaced && (
+        <p className="text-xs text-muted-foreground text-center">
+          Pagamento 100% seguro via Mercado Pago
+        </p>
+      )}
     </div>
   );
 };
