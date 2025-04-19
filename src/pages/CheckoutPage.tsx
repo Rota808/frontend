@@ -368,8 +368,24 @@ const CheckoutPage: React.FC = () => {
                   {watchPaymentMethod === "mercadopago" && (
                     <div className="mt-4">
                       <MercadoPagoPayment
-                        preferenceId={preferenceId}
-                        isLoading={isSubmitting}
+                      orderId={createdOrderId ? String(createdOrderId) : ""}
+                      cartItems={items.map((item) => ({
+                        id: String(
+                        item.type === "pizza"
+                          ? item.pizza.id
+                          : item.beverage.id
+                        ),
+                        name:
+                        item.type === "pizza"
+                          ? item.pizza.pizza_name
+                          : item.beverage.beverage_name,
+                        price: item.price,
+                        quantity: item.quantity,
+                      }))}
+                      userInfo={{
+                        email: "", // Provide user email if available
+                        phone: form.getValues("contactNumber"),
+                      }}
                       />
                     </div>
                   )}
