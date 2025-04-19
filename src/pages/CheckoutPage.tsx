@@ -24,7 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CreditCard, Banknote, ShoppingBag, QrCode } from "lucide-react";
 import PixQRCode from "@/components/PixQRCode";
-import MercadoPagoPayment from '@/components/MercadoPagoPayment';
+import MercadoPagoPayment from "@/components/MercadoPagoPayment";
 
 const formSchema = z.object({
   fullName: z.string().min(2, "Nome completo é obrigatório"),
@@ -100,10 +100,10 @@ const CheckoutPage: React.FC = () => {
   useEffect(() => {
     const savedUser = apiService.getSavedUser();
     if (savedUser) {
-      form.setValue('fullName', savedUser.full_name);
-      form.setValue('contactNumber', savedUser.contact_number);
-      form.setValue('deliveryAddress', savedUser.saved_address);
-      form.setValue('saveInfo', savedUser.saved_info);
+      form.setValue("fullName", savedUser.full_name);
+      form.setValue("contactNumber", savedUser.contact_number);
+      form.setValue("deliveryAddress", savedUser.saved_address);
+      form.setValue("saveInfo", savedUser.saved_info);
     }
   }, [form]);
 
@@ -138,7 +138,7 @@ const CheckoutPage: React.FC = () => {
       const order = await apiService.createOrder(orderData);
       setCreatedOrderId(order.id);
 
-      setPreferenceId('DUMMY_PREFERENCE_ID');
+      setPreferenceId("DUMMY_PREFERENCE_ID");
 
       let paymentResult;
       if (values.paymentMethod === "mercadopago") {
@@ -206,14 +206,16 @@ const CheckoutPage: React.FC = () => {
 
   const handleCompletePIXPayment = async () => {
     if (!createdOrderId) return;
-    
+
     try {
       setIsSubmitting(true);
       const result = await paymentService.confirmPixPayment(createdOrderId);
-      
+
       if (result.success) {
         clearCart();
-        toast.success("Pagamento PIX confirmado! Seu pedido está sendo preparado.");
+        toast.success(
+          "Pagamento PIX confirmado! Seu pedido está sendo preparado."
+        );
         navigate(`/order-tracking?orderId=${createdOrderId}`);
       } else {
         toast.error(result.error || "Erro ao confirmar pagamento");
@@ -331,7 +333,7 @@ const CheckoutPage: React.FC = () => {
                                 MercadoPago
                               </FormLabel>
                             </FormItem>
-                            <FormItem className="flex items-center space-x-3 space-y-0">
+                            {/* <FormItem className="flex items-center space-x-3 space-y-0">
                               <FormControl>
                                 <RadioGroupItem value="credit_card" />
                               </FormControl>
@@ -339,7 +341,7 @@ const CheckoutPage: React.FC = () => {
                                 <CreditCard className="mr-2 h-4 w-4" />
                                 Cartão de Crédito
                               </FormLabel>
-                            </FormItem>
+                            </FormItem> */}
                             <FormItem className="flex items-center space-x-3 space-y-0">
                               <FormControl>
                                 <RadioGroupItem value="cash" />
@@ -349,7 +351,7 @@ const CheckoutPage: React.FC = () => {
                                 Dinheiro na Entrega
                               </FormLabel>
                             </FormItem>
-                            <FormItem className="flex items-center space-x-3 space-y-0">
+                            {/* <FormItem className="flex items-center space-x-3 space-y-0">
                               <FormControl>
                                 <RadioGroupItem value="pix" />
                               </FormControl>
@@ -357,7 +359,7 @@ const CheckoutPage: React.FC = () => {
                                 <QrCode className="mr-2 h-4 w-4" />
                                 PIX
                               </FormLabel>
-                            </FormItem>
+                            </FormItem> */}
                           </RadioGroup>
                         </FormControl>
                         <FormMessage />
@@ -368,24 +370,24 @@ const CheckoutPage: React.FC = () => {
                   {watchPaymentMethod === "mercadopago" && (
                     <div className="mt-4">
                       <MercadoPagoPayment
-                      orderId={createdOrderId ? String(createdOrderId) : ""}
-                      cartItems={items.map((item) => ({
-                        id: String(
-                        item.type === "pizza"
-                          ? item.pizza.id
-                          : item.beverage.id
-                        ),
-                        name:
-                        item.type === "pizza"
-                          ? item.pizza.pizza_name
-                          : item.beverage.beverage_name,
-                        price: item.price,
-                        quantity: item.quantity,
-                      }))}
-                      userInfo={{
-                        email: "", // Provide user email if available
-                        phone: form.getValues("contactNumber"),
-                      }}
+                        orderId={createdOrderId ? String(createdOrderId) : ""}
+                        cartItems={items.map((item) => ({
+                          id: String(
+                            item.type === "pizza"
+                              ? item.pizza.id
+                              : item.beverage.id
+                          ),
+                          name:
+                            item.type === "pizza"
+                              ? item.pizza.pizza_name
+                              : item.beverage.beverage_name,
+                          price: item.price,
+                          quantity: item.quantity,
+                        }))}
+                        userInfo={{
+                          email: "", // Provide user email if available
+                          phone: form.getValues("contactNumber"),
+                        }}
                       />
                     </div>
                   )}
@@ -450,7 +452,9 @@ const CheckoutPage: React.FC = () => {
                         onClick={handleCompletePIXPayment}
                         disabled={isSubmitting}
                       >
-                        {isSubmitting ? "Processando..." : "Confirmar Pagamento PIX"}
+                        {isSubmitting
+                          ? "Processando..."
+                          : "Confirmar Pagamento PIX"}
                       </Button>
                       <p className="text-xs text-center mt-2 text-muted-foreground">
                         Clique para simular a confirmação do pagamento PIX
