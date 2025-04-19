@@ -21,7 +21,7 @@ interface MercadoPagoPaymentProps {
     phone: string;
   };
   onReady?: () => void;
-  orderPlaced: boolean; // New prop to control when to show errors
+  orderPlaced: boolean; // Prop to control when to show errors
 }
 
 const MercadoPagoPayment: React.FC<MercadoPagoPaymentProps> = ({
@@ -96,8 +96,16 @@ const MercadoPagoPayment: React.FC<MercadoPagoPaymentProps> = ({
   };
 
   useEffect(() => {
-    createPaymentPreference();
-  }, [orderId, retryCount]);
+    // Only attempt to create a payment preference if orderPlaced is true
+    if (orderPlaced && orderId) {
+      createPaymentPreference();
+    }
+  }, [orderId, retryCount, orderPlaced]);
+
+  // Don't render anything if order hasn't been placed yet
+  if (!orderPlaced) {
+    return null;
+  }
 
   if (isInitializing) {
     return (
@@ -106,18 +114,16 @@ const MercadoPagoPayment: React.FC<MercadoPagoPaymentProps> = ({
           <Loader2 className="h-4 w-4 animate-spin" />
           {retryCount > 0 ? "Tentando novamente..." : "Preparando pagamento..."}
         </Button>
-        {orderPlaced && (
-          <p className="text-sm text-muted-foreground">
-            {retryCount > 0
-              ? `Tentativa ${retryCount} de 3`
-              : "Estabelecendo conexão segura"}
-          </p>
-        )}
+        <p className="text-sm text-muted-foreground">
+          {retryCount > 0
+            ? `Tentativa ${retryCount} de 3`
+            : "Estabelecendo conexão segura"}
+        </p>
       </div>
     );
   }
 
-  if (error && orderPlaced) {
+  if (error) {
     return (
       <div className="flex flex-col items-center gap-4 p-4">
         <Button variant="destructive" disabled>
@@ -146,18 +152,14 @@ const MercadoPagoPayment: React.FC<MercadoPagoPaymentProps> = ({
             onReady={() => console.log("MercadoPago Wallet ready")}
             onError={(error) => {
               console.error("MercadoPago error:", error);
-              if (orderPlaced) {
-                setError("Falha ao carregar o método de pagamento");
-              }
+              setError("Falha ao carregar o método de pagamento");
             }}
           />
         )}
       </div>
-      {orderPlaced && (
-        <p className="text-xs text-muted-foreground text-center">
-          Pagamento 100% seguro via Mercado Pago
-        </p>
-      )}
+      <p className="text-xs text-muted-foreground text-center">
+        Pagamento 100% seguro via Mercado Pago
+      </p>
     </div>
   );
 };
