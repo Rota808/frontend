@@ -3,8 +3,8 @@ import { initMercadoPago, Wallet } from '@mercadopago/sdk-react';
 import React, { useEffect } from 'react';
 import { Button } from './ui/button';
 
-// Inicializa o MercadoPago com chave pública de teste
-initMercadoPago('TEST-91184469-7151-4220-8de6-2f233c2d51ab');
+// Initialize MercadoPago with the public key
+initMercadoPago('APP_USR-94cce6e2-7574-4dc9-bf81-743b7d093b08');
 
 interface MercadoPagoPaymentProps {
   preferenceId: string | null;
