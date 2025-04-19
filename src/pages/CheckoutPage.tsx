@@ -24,13 +24,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CreditCard, Banknote, ShoppingBag, QrCode } from "lucide-react";
 import PixQRCode from "@/components/PixQRCode";
+import MercadoPagoPayment from '@/components/MercadoPagoPayment';
 
 const formSchema = z.object({
   fullName: z.string().min(2, "Nome completo é obrigatório"),
   contactNumber: z.string().min(5, "Número de contato válido é obrigatório"),
   deliveryAddress: z.string().min(5, "Endereço de entrega é obrigatório"),
   saveInfo: z.boolean().default(false),
-  paymentMethod: z.enum(["credit_card", "cash", "pix"], {
+  paymentMethod: z.enum(["credit_card", "cash", "pix", "mercadopago"], {
     required_error: "Por favor selecione um método de pagamento",
   }),
   cardNumber: z.string().optional(),
@@ -80,6 +81,7 @@ const CheckoutPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [pixQRCode, setPixQRCode] = useState<string | null>(null);
   const [createdOrderId, setCreatedOrderId] = useState<number | null>(null);
+  const [preferenceId, setPreferenceId] = useState<string | null>(null);
 
   const form = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutFormSchema),
@@ -109,7 +111,7 @@ const CheckoutPage: React.FC = () => {
 
   const onSubmit = async (values: CheckoutFormValues) => {
     if (items.length === 0) {
-      toast.error("Your cart is empty");
+      toast.error("Seu carrinho está vazio");
       return;
     }
 
@@ -125,23 +127,26 @@ const CheckoutPage: React.FC = () => {
 
       const user = await apiService.createUser(userData);
 
-      const initialStatus = values.paymentMethod === "cash" 
-        ? ORDER_STATUS.PENDING
-        : ORDER_STATUS.PAYMENT_PENDING;
-
       const orderData: Order = {
         user: user.id!,
         delivery_address: values.deliveryAddress,
         contact_phone: values.contactNumber,
         total_price: Number((totalPrice + 3.99).toFixed(2)),
-        status: initialStatus,
+        status: ORDER_STATUS.PAYMENT_PENDING,
       };
 
       const order = await apiService.createOrder(orderData);
       setCreatedOrderId(order.id);
 
+      setPreferenceId('DUMMY_PREFERENCE_ID');
+
       let paymentResult;
-      if (values.paymentMethod === "credit_card") {
+      if (values.paymentMethod === "mercadopago") {
+        paymentResult = await paymentService.processMercadoPagoPayment(
+          orderData.total_price,
+          order.id
+        );
+      } else if (values.paymentMethod === "credit_card") {
         paymentResult = await paymentService.processCreditCardPayment(
           values.cardNumber || "",
           values.cardExpiry || "",
@@ -190,7 +195,7 @@ const CheckoutPage: React.FC = () => {
         toast.success("QR Code PIX gerado! Por favor, complete o pagamento.");
       }
     } catch (error) {
-      console.error("Checkout error:", error);
+      console.error("Erro no checkout:", error);
       toast.error(
         "Houve um problema ao processar seu pedido. Por favor, tente novamente."
       );
@@ -319,6 +324,15 @@ const CheckoutPage: React.FC = () => {
                           >
                             <FormItem className="flex items-center space-x-3 space-y-0">
                               <FormControl>
+                                <RadioGroupItem value="mercadopago" />
+                              </FormControl>
+                              <FormLabel className="font-normal flex items-center">
+                                <CreditCard className="mr-2 h-4 w-4" />
+                                MercadoPago
+                              </FormLabel>
+                            </FormItem>
+                            <FormItem className="flex items-center space-x-3 space-y-0">
+                              <FormControl>
                                 <RadioGroupItem value="credit_card" />
                               </FormControl>
                               <FormLabel className="font-normal flex items-center">
@@ -350,6 +364,15 @@ const CheckoutPage: React.FC = () => {
                       </FormItem>
                     )}
                   />
+
+                  {watchPaymentMethod === "mercadopago" && (
+                    <div className="mt-4">
+                      <MercadoPagoPayment
+                        preferenceId={preferenceId}
+                        isLoading={isSubmitting}
+                      />
+                    </div>
+                  )}
 
                   {watchPaymentMethod === "credit_card" && (
                     <div className="space-y-4 pt-2 border-t">
