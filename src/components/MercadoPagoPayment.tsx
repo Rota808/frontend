@@ -1,4 +1,4 @@
-// components/MercadoPagoPayment.tsx
+
 import { initMercadoPago, Wallet } from "@mercadopago/sdk-react";
 import React, { useEffect, useState } from "react";
 import { Button } from "./ui/button";
@@ -21,6 +21,7 @@ interface MercadoPagoPaymentProps {
     phone: string;
   };
   onReady?: () => void;
+  orderPlaced: boolean; // Prop to control when to show errors
 }
 
 const MercadoPagoPayment: React.FC<MercadoPagoPaymentProps> = ({
@@ -28,6 +29,7 @@ const MercadoPagoPayment: React.FC<MercadoPagoPaymentProps> = ({
   cartItems,
   userInfo,
   onReady,
+  orderPlaced,
 }) => {
   const [preferenceId, setPreferenceId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -80,7 +82,6 @@ const MercadoPagoPayment: React.FC<MercadoPagoPaymentProps> = ({
       console.error("Payment error:", err);
       setError(err instanceof Error ? err.message : "Erro desconhecido");
 
-      // Auto-retry logic (3 attempts)
       if (retryCount < 3) {
         setTimeout(() => {
           setRetryCount(retryCount + 1);
@@ -91,8 +92,16 @@ const MercadoPagoPayment: React.FC<MercadoPagoPaymentProps> = ({
   };
 
   useEffect(() => {
-    createPaymentPreference();
-  }, [orderId, retryCount]);
+    // Only attempt to create a payment preference if orderPlaced is true
+    if (orderPlaced && orderId) {
+      createPaymentPreference();
+    }
+  }, [orderId, retryCount, orderPlaced]);
+
+  // Don't render anything if order hasn't been placed yet
+  if (!orderPlaced) {
+    return null;
+  }
 
   if (error) {
     return (
