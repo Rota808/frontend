@@ -29,13 +29,11 @@ const MercadoPagoPayment: React.FC<MercadoPagoPaymentProps> = ({
   userInfo,
   onReady,
 }) => {
-  const [isInitializing, setIsInitializing] = useState(true);
   const [preferenceId, setPreferenceId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
 
   const createPaymentPreference = async () => {
-    setIsInitializing(true);
     setError(null);
 
     try {
@@ -89,30 +87,12 @@ const MercadoPagoPayment: React.FC<MercadoPagoPaymentProps> = ({
           createPaymentPreference();
         }, 2000);
       }
-    } finally {
-      setIsInitializing(false);
     }
   };
 
   useEffect(() => {
     createPaymentPreference();
   }, [orderId, retryCount]);
-
-  if (isInitializing) {
-    return (
-      <div className="flex flex-col items-center gap-4 p-4">
-        <Button disabled className="gap-2">
-          <Loader2 className="h-4 w-4 animate-spin" />
-          {retryCount > 0 ? "Tentando novamente..." : "Preparando pagamento..."}
-        </Button>
-        <p className="text-sm text-muted-foreground">
-          {retryCount > 0
-            ? `Tentativa ${retryCount} de 3`
-            : "Estabelecendo conexão segura"}
-        </p>
-      </div>
-    );
-  }
 
   if (error) {
     return (
