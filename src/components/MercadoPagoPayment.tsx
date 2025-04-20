@@ -1,4 +1,3 @@
-
 import { initMercadoPago, Wallet } from "@mercadopago/sdk-react";
 import React, { useEffect, useState } from "react";
 import { Button } from "./ui/button";
@@ -81,13 +80,6 @@ const MercadoPagoPayment: React.FC<MercadoPagoPaymentProps> = ({
     } catch (err) {
       console.error("Payment error:", err);
       setError(err instanceof Error ? err.message : "Erro desconhecido");
-
-      if (retryCount < 3) {
-        setTimeout(() => {
-          setRetryCount(retryCount + 1);
-          createPaymentPreference();
-        }, 2000);
-      }
     }
   };
 
