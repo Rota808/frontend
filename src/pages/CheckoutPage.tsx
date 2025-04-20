@@ -23,7 +23,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CreditCard, Banknote, ShoppingBag, QrCode } from "lucide-react";
-import PixQRCode from "@/components/PixQRCode";
 import MercadoPagoPayment from "@/components/MercadoPagoPayment";
 
 const formSchema = z.object({
@@ -31,7 +30,7 @@ const formSchema = z.object({
   contactNumber: z.string().min(5, "Número de contato válido é obrigatório"),
   deliveryAddress: z.string().min(5, "Endereço de entrega é obrigatório"),
   saveInfo: z.boolean().default(false),
-  paymentMethod: z.enum(["credit_card", "cash", "pix", "mercadopago"], {
+  paymentMethod: z.enum(["credit_card", "cash", "mercadopago"], {
     required_error: "Por favor selecione um método de pagamento",
   }),
   cardNumber: z.string().optional(),
@@ -76,12 +75,10 @@ const checkoutFormSchema = z.preprocess((data) => {
 type CheckoutFormValues = z.infer<typeof formSchema>;
 
 const CheckoutPage: React.FC = () => {
-  const navigate = useNavigate();
   const { items, totalPrice, clearCart } = useCart();
+  const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [pixQRCode, setPixQRCode] = useState<string | null>(null);
   const [createdOrderId, setCreatedOrderId] = useState<number | null>(null);
-  const [preferenceId, setPreferenceId] = useState<string | null>(null);
   const [isOrderPlaced, setIsOrderPlaced] = useState(false);
 
   const form = useForm<CheckoutFormValues>({
@@ -140,30 +137,12 @@ const CheckoutPage: React.FC = () => {
       const order = await apiService.createOrder(orderData);
       setCreatedOrderId(order.id);
 
-      setPreferenceId("DUMMY_PREFERENCE_ID");
-
       let paymentResult;
       if (values.paymentMethod === "mercadopago") {
         paymentResult = await paymentService.processMercadoPagoPayment(
           orderData.total_price,
           order.id
         );
-      } else if (values.paymentMethod === "credit_card") {
-        paymentResult = await paymentService.processCreditCardPayment(
-          values.cardNumber || "",
-          values.cardExpiry || "",
-          values.cardCvc || "",
-          orderData.total_price,
-          order.id
-        );
-      } else if (values.paymentMethod === "pix") {
-        paymentResult = await paymentService.processPixPayment(
-          orderData.total_price,
-          order.id
-        );
-        if (paymentResult.success && paymentResult.pixQrCode) {
-          setPixQRCode(paymentResult.pixQrCode);
-        }
       } else {
         paymentResult = await paymentService.processCashPayment(
           orderData.total_price,
@@ -179,52 +158,20 @@ const CheckoutPage: React.FC = () => {
         order: order.id!,
         payment_method: values.paymentMethod,
         transaction_id: paymentResult.transactionId,
-        ...(values.paymentMethod === "credit_card" && {
-          card_last_four: values.cardNumber?.slice(-4) || "",
-        }),
-        ...(values.paymentMethod === "pix" && {
-          pix_qr_code: paymentResult.pixQrCode,
-        }),
       };
 
       await apiService.createPayment(paymentData);
 
-      if (values.paymentMethod !== "pix") {
+      if (values.paymentMethod === "cash") {
         clearCart();
         toast.success("Pedido realizado com sucesso!");
         navigate(`/order-tracking?orderId=${order.id}`);
-      } else {
-        toast.success("QR Code PIX gerado! Por favor, complete o pagamento.");
       }
     } catch (error) {
       console.error("Erro no checkout:", error);
       toast.error(
         "Houve um problema ao processar seu pedido. Por favor, tente novamente."
       );
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleCompletePIXPayment = async () => {
-    if (!createdOrderId) return;
-
-    try {
-      setIsSubmitting(true);
-      const result = await paymentService.confirmPixPayment(createdOrderId);
-
-      if (result.success) {
-        clearCart();
-        toast.success(
-          "Pagamento PIX confirmado! Seu pedido está sendo preparado."
-        );
-        navigate(`/order-tracking?orderId=${createdOrderId}`);
-      } else {
-        toast.error(result.error || "Erro ao confirmar pagamento");
-      }
-    } catch (error) {
-      console.error("Error confirming payment:", error);
-      toast.error("Houve um erro ao confirmar o pagamento");
     } finally {
       setIsSubmitting(false);
     }
@@ -369,81 +316,11 @@ const CheckoutPage: React.FC = () => {
                           quantity: item.quantity,
                         }))}
                         userInfo={{
-                          email: "", // Provide user email if available
+                          email: "customer@example.com",
                           phone: form.getValues("contactNumber"),
                         }}
                         orderPlaced={isOrderPlaced}
                       />
-                    </div>
-                  )}
-
-                  {watchPaymentMethod === "credit_card" && (
-                    <div className="space-y-4 pt-2 border-t">
-                      <FormField
-                        control={form.control}
-                        name="cardNumber"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Card Number</FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder="4111 1111 1111 1111"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="cardExpiry"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Expiry Date</FormLabel>
-                              <FormControl>
-                                <Input placeholder="MM/YY" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name="cardCvc"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>CVC</FormLabel>
-                              <FormControl>
-                                <Input placeholder="123" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {pixQRCode && form.watch("paymentMethod") === "pix" && (
-                    <div className="mt-4">
-                      <PixQRCode value={pixQRCode} amount={totalPrice + 3.99} />
-                      <Button
-                        type="button"
-                        className="mt-4 w-full bg-green-600 hover:bg-green-700"
-                        onClick={handleCompletePIXPayment}
-                        disabled={isSubmitting}
-                      >
-                        {isSubmitting
-                          ? "Processando..."
-                          : "Confirmar Pagamento PIX"}
-                      </Button>
-                      <p className="text-xs text-center mt-2 text-muted-foreground">
-                        Clique para simular a confirmação do pagamento PIX
-                      </p>
                     </div>
                   )}
 
@@ -459,7 +336,7 @@ const CheckoutPage: React.FC = () => {
                     <Button
                       type="submit"
                       className="bg-pizza-primary hover:bg-pizza-primary/90"
-                      disabled={isSubmitting || !!pixQRCode}
+                      disabled={isSubmitting}
                     >
                       {isSubmitting ? "Processing..." : "Place Order"}
                     </Button>
