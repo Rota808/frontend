@@ -1,6 +1,7 @@
 
 // Payment service for handling MercadoPago payments
 import { orderStatusService, ORDER_STATUS } from './orderStatus';
+import { toast } from "@/components/ui/sonner";
 
 interface PaymentResult {
   success: boolean;
@@ -20,7 +21,12 @@ export const paymentService = {
       
       // If we have an orderId, confirm the payment status
       if (orderId) {
-        const response = await fetch(`/api/payments/${orderId}/confirm/`, {
+        console.log('Confirming payment for order:', orderId);
+        
+        const apiUrl = `https://blue-desert-0e083480f.6.azurestaticapps.net/api/payments/${orderId}/confirm/`;
+        console.log('Calling API URL:', apiUrl);
+        
+        const response = await fetch(apiUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -30,11 +36,24 @@ export const paymentService = {
           }),
         });
 
+        console.log('Response status:', response.status);
+        
         if (!response.ok) {
+          const errorText = await response.text();
+          console.error('API error response:', errorText);
           throw new Error('Failed to confirm payment');
         }
 
-        const data = await response.json();
+        let data;
+        const responseText = await response.text();
+        console.log('Raw response:', responseText);
+        
+        try {
+          data = responseText ? JSON.parse(responseText) : {};
+        } catch (parseError) {
+          console.error('JSON parse error:', parseError);
+        }
+        
         console.log('Payment confirmation response:', data);
 
         // Update order status
@@ -50,9 +69,10 @@ export const paymentService = {
       };
     } catch (error) {
       console.error('MercadoPago payment error:', error);
+      toast.error('Falha ao processar pagamento');
       return {
         success: false,
-        error: 'Falha ao processar pagamento'
+        error: error instanceof Error ? error.message : 'Falha ao processar pagamento'
       };
     }
   },
@@ -78,9 +98,10 @@ export const paymentService = {
       };
     } catch (error) {
       console.error('Cash payment error:', error);
+      toast.error('Falha ao processar pagamento em dinheiro');
       return {
         success: false,
-        error: 'Falha ao processar pagamento em dinheiro'
+        error: error instanceof Error ? error.message : 'Falha ao processar pagamento em dinheiro'
       };
     }
   }

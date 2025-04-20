@@ -3,6 +3,7 @@ import { initMercadoPago, Wallet } from "@mercadopago/sdk-react";
 import React, { useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import { Loader2 } from "lucide-react";
+import { toast } from "@/components/ui/sonner";
 
 // Initialize MercadoPago with the provided public key
 const publicKey = "APP_USR-94cce6e2-7574-4dc9-bf81-743b7d093b08";
@@ -42,34 +43,64 @@ const MercadoPagoPayment: React.FC<MercadoPagoPaymentProps> = ({
     setError(null);
 
     try {
-      const response = await fetch(
-        `/api/orders/${orderId}/create_mercado_pago_preference/`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
+      console.log("Creating MercadoPago preference for order:", orderId);
+      console.log("Request payload:", {
+        items: cartItems.map((item) => ({
+          id: item.id,
+          title: item.name,
+          unit_price: item.price,
+          quantity: item.quantity,
+          currency_id: "BRL",
+        })),
+        payer: {
+          email: userInfo.email,
+          phone: userInfo.phone,
+        },
+      });
+
+      const apiUrl = `https://blue-desert-0e083480f.6.azurestaticapps.net/api/orders/${orderId}/create_mercado_pago_preference/`;
+      console.log("Calling API URL:", apiUrl);
+      
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          items: cartItems.map((item) => ({
+            id: item.id,
+            title: item.name,
+            unit_price: item.price,
+            quantity: item.quantity,
+            currency_id: "BRL",
+          })),
+          payer: {
+            email: userInfo.email,
+            phone: userInfo.phone,
           },
-          body: JSON.stringify({
-            items: cartItems.map((item) => ({
-              id: item.id,
-              title: item.name,
-              unit_price: item.price,
-              quantity: item.quantity,
-              currency_id: "BRL",
-            })),
-            payer: {
-              email: userInfo.email,
-              phone: userInfo.phone,
-            },
-          }),
-        }
-      );
+        }),
+      });
 
-      const data = await response.json();
-
+      console.log("Response status:", response.status);
+      
       if (!response.ok) {
-        throw new Error(data.error || "Erro ao criar pagamento");
+        const errorText = await response.text();
+        console.error("API error response:", errorText);
+        throw new Error(errorText || "Erro ao criar pagamento");
       }
+
+      let data;
+      const responseText = await response.text();
+      console.log("Raw response:", responseText);
+      
+      try {
+        data = responseText ? JSON.parse(responseText) : {};
+      } catch (parseError) {
+        console.error("JSON parse error:", parseError);
+        throw new Error("Invalid response from server");
+      }
+
+      console.log("Parsed response data:", data);
 
       if (!data.preference_id) {
         throw new Error("ID de preferência não recebido");
@@ -81,6 +112,7 @@ const MercadoPagoPayment: React.FC<MercadoPagoPaymentProps> = ({
     } catch (err) {
       console.error("Payment error:", err);
       setError(err instanceof Error ? err.message : "Erro desconhecido");
+      toast.error("Falha ao configurar o pagamento. Por favor, tente novamente.");
     } finally {
       setIsLoading(false);
     }
