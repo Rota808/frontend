@@ -1,4 +1,3 @@
-
 import { initMercadoPago, Wallet } from "@mercadopago/sdk-react";
 import React, { useEffect, useState } from "react";
 import { Button } from "./ui/button";
@@ -38,7 +37,7 @@ const MercadoPagoPayment: React.FC<MercadoPagoPaymentProps> = ({
 
   const createPaymentPreference = async () => {
     if (!orderPlaced || !orderId) return;
-    
+
     setIsLoading(true);
     setError(null);
 
@@ -58,9 +57,10 @@ const MercadoPagoPayment: React.FC<MercadoPagoPaymentProps> = ({
         },
       });
 
-      const apiUrl = `https://blue-desert-0e083480f.6.azurestaticapps.net/api/orders/${orderId}/create_mercado_pago_preference/`;
+      //const apiUrl = `https://blue-desert-0e083480f.6.azurestaticapps.net/api/orders/${orderId}/create_mercado_pago_preference/`;
+      const apiUrl = `http://localhost:8080/api/orders/${orderId}/create_mercado_pago_preference/`;
       console.log("Calling API URL:", apiUrl);
-      
+
       const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
@@ -82,7 +82,7 @@ const MercadoPagoPayment: React.FC<MercadoPagoPaymentProps> = ({
       });
 
       console.log("Response status:", response.status);
-      
+
       if (!response.ok) {
         const errorText = await response.text();
         console.error("API error response:", errorText);
@@ -92,7 +92,7 @@ const MercadoPagoPayment: React.FC<MercadoPagoPaymentProps> = ({
       let data;
       const responseText = await response.text();
       console.log("Raw response:", responseText);
-      
+
       try {
         data = responseText ? JSON.parse(responseText) : {};
       } catch (parseError) {
@@ -108,11 +108,12 @@ const MercadoPagoPayment: React.FC<MercadoPagoPaymentProps> = ({
 
       setPreferenceId(data.preference_id);
       onReady?.();
-      
     } catch (err) {
       console.error("Payment error:", err);
       setError(err instanceof Error ? err.message : "Erro desconhecido");
-      toast.error("Falha ao configurar o pagamento. Por favor, tente novamente.");
+      toast.error(
+        "Falha ao configurar o pagamento. Por favor, tente novamente."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -146,10 +147,7 @@ const MercadoPagoPayment: React.FC<MercadoPagoPaymentProps> = ({
           Erro no pagamento
         </Button>
         <p className="text-sm text-red-500 text-center max-w-md">{error}</p>
-        <Button
-          onClick={() => createPaymentPreference()}
-          className="mt-2"
-        >
+        <Button onClick={() => createPaymentPreference()} className="mt-2">
           Tentar novamente
         </Button>
       </div>

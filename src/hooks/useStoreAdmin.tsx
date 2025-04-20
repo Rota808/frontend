@@ -16,14 +16,11 @@ export const useStoreAdmin = () => {
 
   const createStoreMutation = useMutation({
     mutationFn: (data: Omit<StoreInfo, "id">) =>
-      fetch(
-        "https://es2back-f9bra3hfdua8cfa7.francecentral-01.azurewebsites.net/store-info/",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
-        }
-      ).then((res) => res.json()),
+      fetch("http://localhost:8080/api/store-info/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      }).then((res) => res.json()),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["stores"] });
       toast.success("Loja adicionada com sucesso!");
@@ -37,14 +34,11 @@ export const useStoreAdmin = () => {
 
   const updateStoreMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: Omit<StoreInfo, "id"> }) =>
-      fetch(
-        `https://es2back-f9bra3hfdua8cfa7.francecentral-01.azurewebsites.net/store-info/${id}/`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
-        }
-      ).then((res) => res.json()),
+      fetch(`http://localhost:8080/api/store-info/${id}/`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      }).then((res) => res.json()),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["stores"] });
       toast.success("Loja atualizada com sucesso!");
@@ -59,12 +53,9 @@ export const useStoreAdmin = () => {
 
   const deleteStoreMutation = useMutation({
     mutationFn: (id: number) =>
-      fetch(
-        `https://es2back-f9bra3hfdua8cfa7.francecentral-01.azurewebsites.net/store-info/${id}/`,
-        {
-          method: "DELETE",
-        }
-      ),
+      fetch(`http://localhost:8080/api/store-info/${id}/`, {
+        method: "DELETE",
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["stores"] });
       toast.success("Loja excluída com sucesso!");
