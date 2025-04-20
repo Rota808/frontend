@@ -23,8 +23,8 @@ export const paymentService = {
       if (orderId) {
         console.log('Confirming payment for order:', orderId);
         
-        //const apiUrl = `https://blue-desert-0e083480f.6.azurestaticapps.net/api/payments/${orderId}/confirm/`;
-        const apiUrl = `http://localhost:8080/api/payments/${orderId}/confirm/`;
+        const apiUrl = `https://es2back-f9bra3hfdua8cfa7.francecentral-01.azurewebsites.net/api/payments/${orderId}/confirm/`;
+        //const apiUrl = `http://localhost:8000/api/payments/${orderId}/confirm/`;
         console.log('Calling API URL:', apiUrl);
         
         const response = await fetch(apiUrl, {
