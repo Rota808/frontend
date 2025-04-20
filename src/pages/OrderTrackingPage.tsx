@@ -35,7 +35,6 @@ const OrderTrackingPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showMap, setShowMap] = useState(false);
-  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   
   const [userOrders, setUserOrders] = useState<Order[]>([]);
   
@@ -81,27 +80,6 @@ const OrderTrackingPage: React.FC = () => {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     fetchOrder(orderIdInput);
-  };
-  
-  const confirmPixPayment = async () => {
-    if (!order || !order.id) return;
-    
-    try {
-      setIsProcessingPayment(true);
-      const result = await paymentService.confirmPixPayment(order.id);
-      
-      if (result.success) {
-        toast.success("Pagamento PIX confirmado!");
-        fetchOrder(String(order.id));
-      } else {
-        toast.error(result.error || "Erro ao confirmar pagamento PIX");
-      }
-    } catch (error) {
-      console.error("Erro ao confirmar pagamento:", error);
-      toast.error("Ocorreu um erro ao confirmar o pagamento");
-    } finally {
-      setIsProcessingPayment(false);
-    }
   };
   
   const handleRefreshOrder = () => {
@@ -336,15 +314,8 @@ const OrderTrackingPage: React.FC = () => {
                   
                   {isAwaitingPayment && (
                     <div className="mt-4">
-                      <Button
-                        onClick={confirmPixPayment}
-                        className="bg-pizza-primary hover:bg-pizza-primary/90 w-full"
-                        disabled={isProcessingPayment}
-                      >
-                        {isProcessingPayment ? 'Processando...' : 'Confirmar Pagamento PIX'}
-                      </Button>
-                      <p className="text-xs text-center mt-2 text-muted-foreground">
-                        Clique para simular a confirmação do pagamento PIX
+                      <p className="text-sm text-center text-muted-foreground">
+                        Por favor, complete o pagamento para o seu pedido ser processado
                       </p>
                     </div>
                   )}

@@ -1,3 +1,4 @@
+
 import { initMercadoPago, Wallet } from "@mercadopago/sdk-react";
 import React, { useEffect, useState } from "react";
 import { Button } from "./ui/button";
@@ -32,16 +33,15 @@ const MercadoPagoPayment: React.FC<MercadoPagoPaymentProps> = ({
 }) => {
   const [preferenceId, setPreferenceId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
 
   const createPaymentPreference = async () => {
+    if (!orderPlaced || !orderId) return;
+    
+    setIsLoading(true);
     setError(null);
 
     try {
-      if (!orderId) {
-        throw new Error("Nenhum pedido encontrado");
-      }
-
       const response = await fetch(
         "/api/orders/create_mercado_pago_preference/",
         {
@@ -77,9 +77,16 @@ const MercadoPagoPayment: React.FC<MercadoPagoPaymentProps> = ({
 
       setPreferenceId(data.preference_id);
       onReady?.();
+      
+      // For demo purposes, we'll simulate a successful API call
+      // In a real application, this would come from MercadoPago's API
+      setPreferenceId(`TEST-PREFERENCE-${Date.now()}`);
+      
     } catch (err) {
       console.error("Payment error:", err);
       setError(err instanceof Error ? err.message : "Erro desconhecido");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -88,11 +95,22 @@ const MercadoPagoPayment: React.FC<MercadoPagoPaymentProps> = ({
     if (orderPlaced && orderId) {
       createPaymentPreference();
     }
-  }, [orderId, retryCount, orderPlaced]);
+  }, [orderId, orderPlaced]);
 
   // Don't render anything if order hasn't been placed yet
   if (!orderPlaced) {
     return null;
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin text-pizza-primary" />
+        <p className="mt-2 text-sm text-muted-foreground">
+          Carregando opções de pagamento...
+        </p>
+      </div>
+    );
   }
 
   if (error) {
@@ -103,10 +121,7 @@ const MercadoPagoPayment: React.FC<MercadoPagoPaymentProps> = ({
         </Button>
         <p className="text-sm text-red-500 text-center max-w-md">{error}</p>
         <Button
-          onClick={() => {
-            setRetryCount(0);
-            createPaymentPreference();
-          }}
+          onClick={() => createPaymentPreference()}
           className="mt-2"
         >
           Tentar novamente
@@ -118,15 +133,28 @@ const MercadoPagoPayment: React.FC<MercadoPagoPaymentProps> = ({
   return (
     <div className="w-full space-y-4">
       <div className="border rounded-lg p-4">
-        {preferenceId && (
+        {preferenceId ? (
           <Wallet
             initialization={{ preferenceId }}
-            onReady={() => console.log("MercadoPago Wallet ready")}
+            onReady={() => {
+              console.log("MercadoPago Wallet ready");
+              onReady?.();
+            }}
             onError={(error) => {
               console.error("MercadoPago error:", error);
               setError("Falha ao carregar o método de pagamento");
             }}
+            customization={{
+              texts: {
+                action: 'pay',
+                valueProp: 'security_details',
+              }
+            }}
           />
+        ) : (
+          <div className="text-center p-4">
+            <p>Preparando opções de pagamento...</p>
+          </div>
         )}
       </div>
       <p className="text-xs text-muted-foreground text-center">

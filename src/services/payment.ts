@@ -1,3 +1,4 @@
+
 // Payment service for handling MercadoPago payments
 // Note: This is a client-side implementation that would need to connect
 // to a secure backend service later

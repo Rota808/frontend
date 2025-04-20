@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -22,7 +23,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CreditCard, Banknote, ShoppingBag, QrCode } from "lucide-react";
+import { CreditCard, Banknote, ShoppingBag } from "lucide-react";
 import MercadoPagoPayment from "@/components/MercadoPagoPayment";
 
 const formSchema = z.object({
@@ -137,43 +138,67 @@ const CheckoutPage: React.FC = () => {
       const order = await apiService.createOrder(orderData);
       setCreatedOrderId(order.id);
 
-      let paymentResult;
-      if (values.paymentMethod === "mercadopago") {
-        paymentResult = await paymentService.processMercadoPagoPayment(
-          orderData.total_price,
-          order.id
-        );
-      } else {
-        paymentResult = await paymentService.processCashPayment(
-          orderData.total_price,
-          order.id
-        );
-      }
-
-      if (!paymentResult.success) {
-        throw new Error(paymentResult.error || "Payment processing failed");
-      }
-
-      const paymentData: Payment = {
-        order: order.id!,
-        payment_method: values.paymentMethod,
-        transaction_id: paymentResult.transactionId,
-      };
-
-      await apiService.createPayment(paymentData);
-
+      // For cash payments, process immediately
       if (values.paymentMethod === "cash") {
+        const paymentResult = await paymentService.processCashPayment(
+          orderData.total_price,
+          order.id
+        );
+
+        if (!paymentResult.success) {
+          throw new Error(paymentResult.error || "Payment processing failed");
+        }
+
+        const paymentData: Payment = {
+          order: order.id!,
+          payment_method: values.paymentMethod,
+          transaction_id: paymentResult.transactionId,
+        };
+
+        await apiService.createPayment(paymentData);
+        
         clearCart();
         toast.success("Pedido realizado com sucesso!");
         navigate(`/order-tracking?orderId=${order.id}`);
       }
+      
+      // For MercadoPago, we don't process here - we just show the MercadoPago UI
+      // The MercadoPago component will handle the payment flow
+      
     } catch (error) {
       console.error("Erro no checkout:", error);
       toast.error(
         "Houve um problema ao processar seu pedido. Por favor, tente novamente."
       );
-    } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  // This function will be called when MercadoPago payment is successful
+  const handleMercadoPagoSuccess = async (transactionId: string) => {
+    if (!createdOrderId) return;
+    
+    try {
+      const paymentData: Payment = {
+        order: createdOrderId,
+        payment_method: "mercadopago",
+        transaction_id: transactionId,
+      };
+
+      await apiService.createPayment(paymentData);
+      
+      // Update order status after successful payment
+      await paymentService.processMercadoPagoPayment(
+        totalPrice + 3.99,
+        createdOrderId
+      );
+      
+      clearCart();
+      toast.success("Pagamento concluído! Pedido realizado com sucesso!");
+      navigate(`/order-tracking?orderId=${createdOrderId}`);
+    } catch (error) {
+      console.error("Error completing MercadoPago payment:", error);
+      toast.error("Erro ao finalizar pagamento. Por favor tente novamente.");
     }
   };
 
@@ -298,10 +323,10 @@ const CheckoutPage: React.FC = () => {
                     )}
                   />
 
-                  {watchPaymentMethod === "mercadopago" && (
+                  {watchPaymentMethod === "mercadopago" && isOrderPlaced && createdOrderId && (
                     <div className="mt-4">
                       <MercadoPagoPayment
-                        orderId={createdOrderId ? String(createdOrderId) : ""}
+                        orderId={String(createdOrderId)}
                         cartItems={items.map((item) => ({
                           id: String(
                             item.type === "pizza"
@@ -320,6 +345,7 @@ const CheckoutPage: React.FC = () => {
                           phone: form.getValues("contactNumber"),
                         }}
                         orderPlaced={isOrderPlaced}
+                        onReady={() => setIsSubmitting(false)}
                       />
                     </div>
                   )}
