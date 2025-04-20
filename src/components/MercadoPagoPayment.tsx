@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import { Loader2 } from "lucide-react";
 
-// Initialize MercadoPago
+// Initialize MercadoPago with the provided public key
 const publicKey = "APP_USR-94cce6e2-7574-4dc9-bf81-743b7d093b08";
 initMercadoPago(publicKey, { locale: "pt-BR" });
 
@@ -78,10 +78,6 @@ const MercadoPagoPayment: React.FC<MercadoPagoPaymentProps> = ({
       setPreferenceId(data.preference_id);
       onReady?.();
       
-      // For demo purposes, we'll simulate a successful API call
-      // In a real application, this would come from MercadoPago's API
-      setPreferenceId(`TEST-PREFERENCE-${Date.now()}`);
-      
     } catch (err) {
       console.error("Payment error:", err);
       setError(err instanceof Error ? err.message : "Erro desconhecido");
@@ -143,12 +139,6 @@ const MercadoPagoPayment: React.FC<MercadoPagoPaymentProps> = ({
             onError={(error) => {
               console.error("MercadoPago error:", error);
               setError("Falha ao carregar o método de pagamento");
-            }}
-            customization={{
-              texts: {
-                action: 'pay',
-                valueProp: 'security_details',
-              }
             }}
           />
         ) : (

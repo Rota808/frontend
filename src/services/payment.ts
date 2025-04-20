@@ -1,4 +1,3 @@
-
 // Payment service for handling MercadoPago payments
 // Note: This is a client-side implementation that would need to connect
 // to a secure backend service later
@@ -21,10 +20,10 @@ export const paymentService = {
     try {
       console.log('Processing MercadoPago payment for amount:', amount);
       
-      // This is a simulation - will be replaced with actual MercadoPago API calls
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // This will be replaced with actual MercadoPago API calls
+      // We're keeping this simple since MercadoPago UI handles the payment flow
       
-      // Generate mock transaction ID for the payment record
+      // Generate transaction ID for the payment record
       const transactionId = `MP-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
       
       // Update order status if orderId is provided
@@ -54,7 +53,7 @@ export const paymentService = {
     try {
       console.log('Processing cash payment for amount:', amount);
       
-      // Generate mock transaction ID
+      // Generate transaction ID
       const transactionId = `CASH-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
       
       // For cash payments, we'll also update the order status

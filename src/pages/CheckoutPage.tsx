@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -174,7 +173,6 @@ const CheckoutPage: React.FC = () => {
     }
   };
 
-  // This function will be called when MercadoPago payment is successful
   const handleMercadoPagoSuccess = async (transactionId: string) => {
     if (!createdOrderId) return;
     
