@@ -21,7 +21,7 @@ interface MercadoPagoPaymentProps {
     phone: string;
   };
   onReady?: () => void;
-  orderPlaced: boolean; // Prop to control when to show errors
+  orderPlaced: boolean;
 }
 
 const MercadoPagoPayment: React.FC<MercadoPagoPaymentProps> = ({
@@ -43,19 +43,19 @@ const MercadoPagoPayment: React.FC<MercadoPagoPaymentProps> = ({
 
     try {
       const response = await fetch(
-        "/api/orders/create_mercado_pago_preference/",
+        `/api/orders/${orderId}/create_mercado_pago_preference/`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            order_id: orderId,
             items: cartItems.map((item) => ({
               id: item.id,
               title: item.name,
               unit_price: item.price,
               quantity: item.quantity,
+              currency_id: "BRL",
             })),
             payer: {
               email: userInfo.email,
@@ -87,13 +87,11 @@ const MercadoPagoPayment: React.FC<MercadoPagoPaymentProps> = ({
   };
 
   useEffect(() => {
-    // Only attempt to create a payment preference if orderPlaced is true
     if (orderPlaced && orderId) {
       createPaymentPreference();
     }
   }, [orderId, orderPlaced]);
 
-  // Don't render anything if order hasn't been placed yet
   if (!orderPlaced) {
     return null;
   }

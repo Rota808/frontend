@@ -1,7 +1,5 @@
-// Payment service for handling MercadoPago payments
-// Note: This is a client-side implementation that would need to connect
-// to a secure backend service later
 
+// Payment service for handling MercadoPago payments
 import { orderStatusService, ORDER_STATUS } from './orderStatus';
 
 interface PaymentResult {
@@ -20,16 +18,30 @@ export const paymentService = {
     try {
       console.log('Processing MercadoPago payment for amount:', amount);
       
-      // This will be replaced with actual MercadoPago API calls
-      // We're keeping this simple since MercadoPago UI handles the payment flow
-      
-      // Generate transaction ID for the payment record
-      const transactionId = `MP-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-      
-      // Update order status if orderId is provided
+      // If we have an orderId, confirm the payment status
       if (orderId) {
+        const response = await fetch(`/api/payments/${orderId}/confirm/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            status: 'approved'
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to confirm payment');
+        }
+
+        const data = await response.json();
+        console.log('Payment confirmation response:', data);
+
+        // Update order status
         await orderStatusService.processOrderAfterPayment(orderId);
       }
+      
+      const transactionId = `MP-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
       
       return {
         success: true,
@@ -53,10 +65,8 @@ export const paymentService = {
     try {
       console.log('Processing cash payment for amount:', amount);
       
-      // Generate transaction ID
       const transactionId = `CASH-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
       
-      // For cash payments, we'll also update the order status
       if (orderId) {
         await orderStatusService.processOrderAfterPayment(orderId);
       }
