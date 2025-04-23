@@ -55,7 +55,7 @@ const BeverageCard: React.FC<BeverageCardProps> = ({ beverage }) => {
           onClick={handleAddToCart} 
           className="bg-pizza-primary hover:bg-pizza-primary/90"
         >
-          Add to Cart
+          Adicionar ao Carrinho
         </Button>
       </CardFooter>
     </Card>

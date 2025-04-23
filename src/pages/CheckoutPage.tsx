@@ -210,7 +210,7 @@ const CheckoutPage: React.FC = () => {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <ShoppingBag className="mr-2 h-5 w-5 text-pizza-primary" />
-                Customer Information
+                Informações do cliente
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -224,7 +224,7 @@ const CheckoutPage: React.FC = () => {
                     name="fullName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Full Name</FormLabel>
+                        <FormLabel>Nome Completo</FormLabel>
                         <FormControl>
                           <Input placeholder="John Doe" {...field} />
                         </FormControl>
@@ -238,7 +238,7 @@ const CheckoutPage: React.FC = () => {
                     name="contactNumber"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Contact Number</FormLabel>
+                        <FormLabel>Número de contato</FormLabel>
                         <FormControl>
                           <Input placeholder="+1 (555) 123-4567" {...field} />
                         </FormControl>
@@ -252,7 +252,7 @@ const CheckoutPage: React.FC = () => {
                     name="deliveryAddress"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Delivery Address</FormLabel>
+                        <FormLabel>Endereço de Entrega</FormLabel>
                         <FormControl>
                           <Textarea
                             placeholder="Enter your full address"
@@ -277,7 +277,7 @@ const CheckoutPage: React.FC = () => {
                         </FormControl>
                         <div className="space-y-1 leading-none">
                           <FormLabel>
-                            Save my information for future orders
+                            Salvar minhas informaçoes para compras futuras
                           </FormLabel>
                         </div>
                       </FormItem>
@@ -354,7 +354,7 @@ const CheckoutPage: React.FC = () => {
                       variant="outline"
                       onClick={() => navigate("/cart")}
                     >
-                      Back to Cart
+                      Voltar ao Carrinho
                     </Button>
 
                     <Button
@@ -374,7 +374,7 @@ const CheckoutPage: React.FC = () => {
         <div>
           <Card>
             <CardHeader>
-              <CardTitle>Order Summary</CardTitle>
+              <CardTitle>Resumo da Compra</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -391,7 +391,7 @@ const CheckoutPage: React.FC = () => {
                           </span>
                           {item.type === "pizza" && (
                             <p className="text-sm text-muted-foreground">
-                              Size: {item.size.size_name}
+                              Tamanho: {item.size.size_name}
                             </p>
                           )}
                         </div>
@@ -407,7 +407,7 @@ const CheckoutPage: React.FC = () => {
                     <span>${totalPrice.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between pb-2">
-                    <span>Delivery Fee</span>
+                    <span>Taxa de Entrega</span>
                     <span>$3.99</span>
                   </div>
                   <div className="flex justify-between pt-2 border-t text-lg font-bold">

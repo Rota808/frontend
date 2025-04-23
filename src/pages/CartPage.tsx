@@ -23,15 +23,15 @@ const CartPage: React.FC = () => {
       {items.length === 0 ? (
         <div className="text-center py-10">
           <ShoppingBag className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
-          <h2 className="text-2xl font-semibold mb-2">Your cart is empty</h2>
+          <h2 className="text-2xl font-semibold mb-2">Seu carrinho está vazio</h2>
           <p className="text-muted-foreground mb-6">
-            Looks like you haven't added anything to your cart yet.
+            Parece que você ainda  não adicinou nada ao carrinho.
           </p>
           <Button 
             onClick={() => navigate('/')}
             className="bg-pizza-primary hover:bg-pizza-primary/90"
           >
-            Browse Menu
+            Navegar no Menu
           </Button>
         </div>
       ) : (
@@ -54,7 +54,7 @@ const CartPage: React.FC = () => {
               <span className="text-lg font-medium">${totalPrice.toFixed(2)}</span>
             </div>
             <div className="flex justify-between items-center mb-4 text-muted-foreground">
-              <span>Delivery Fee</span>
+              <span>Taxa de Entrega</span>
               <span>$3.99</span>
             </div>
             <div className="flex justify-between items-center mb-6 text-xl font-bold">
@@ -69,7 +69,7 @@ const CartPage: React.FC = () => {
                 onClick={() => navigate('/')}
               >
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Continue Shopping
+                Continue comprando
               </Button>
               
               <div className="flex gap-3">
@@ -78,7 +78,7 @@ const CartPage: React.FC = () => {
                   className="text-destructive hover:text-destructive"
                   onClick={() => clearCart()}
                 >
-                  Clear Cart
+                  Esvaziar Carrinho
                 </Button>
                 
                 <Button

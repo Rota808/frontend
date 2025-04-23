@@ -119,7 +119,7 @@ const PizzaCard: React.FC<PizzaCardProps> = ({ pizza, sizes, pizzaPrices }) => {
             className="bg-pizza-primary hover:bg-pizza-primary/90"
             disabled={!selectedSizeId}
           >
-            Add to Cart
+            Adicionar ao Carrinho
           </Button>
         </div>
       </CardFooter>
