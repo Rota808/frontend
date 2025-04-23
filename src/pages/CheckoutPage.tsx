@@ -362,7 +362,7 @@ const CheckoutPage: React.FC = () => {
                       className="bg-pizza-primary hover:bg-pizza-primary/90"
                       disabled={isSubmitting}
                     >
-                      {isSubmitting ? "Processing..." : "Place Order"}
+                      {isSubmitting ? "Processando..." : "Concluir Pedido"}
                     </Button>
                   </div>
                 </form>

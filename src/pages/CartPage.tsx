@@ -18,7 +18,7 @@ const CartPage: React.FC = () => {
   
   return (
     <div className="pizza-container py-8">
-      <h1 className="text-3xl font-bold text-center mb-6">Your Cart</h1>
+      <h1 className="text-3xl font-bold text-center mb-6">Seu Carrinho</h1>
       
       {items.length === 0 ? (
         <div className="text-center py-10">

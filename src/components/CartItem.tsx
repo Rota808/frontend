@@ -37,7 +37,7 @@ const CartItem: React.FC<CartItemProps> = ({
         {item.type === 'pizza' ? (
           <div>
             <h3 className="font-medium text-pizza-text">{item.pizza.pizza_name}</h3>
-            <p className="text-sm text-muted-foreground">Size: {item.size.size_name}</p>
+            <p className="text-sm text-muted-foreground">Tamanho: {item.size.size_name}</p>
           </div>
         ) : (
           <div>

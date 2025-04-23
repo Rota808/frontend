@@ -67,7 +67,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
         // Calculate the new total price
         const newTotalPrice = state.totalPrice + price;
         
-        toast.success(`Added another ${pizza.pizza_name} to your cart`);
+        toast.success(` ${pizza.pizza_name} adicionada ao seu carrinho`);
         
         return {
           ...state,
@@ -85,7 +85,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
         price,
       };
       
-      toast.success(`Added ${pizza.pizza_name} to your cart`);
+      toast.success(` ${pizza.pizza_name} adicionada ao seu carrinho.`);
       
       return {
         ...state,
@@ -116,7 +116,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
         // Calculate the new total price
         const newTotalPrice = state.totalPrice + beverage.price;
         
-        toast.success(`Added another ${beverage.beverage_name} to your cart`);
+        toast.success(` ${beverage.beverage_name} adicionada ao seu carrinho`);
         
         return {
           ...state,
@@ -133,7 +133,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
         price: beverage.price,
       };
       
-      toast.success(`Added ${beverage.beverage_name} to your cart`);
+      toast.success(`${beverage.beverage_name} adicionada ao seu carrinho.`);
       
       return {
         ...state,
