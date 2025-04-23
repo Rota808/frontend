@@ -81,6 +81,9 @@ const CheckoutPage: React.FC = () => {
   const [createdOrderId, setCreatedOrderId] = useState<number | null>(null);
   const [isOrderPlaced, setIsOrderPlaced] = useState(false);
 
+  const deliveryFee = 3.99;
+  const finalTotal = totalPrice + deliveryFee;
+
   const form = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutFormSchema),
     defaultValues: {
@@ -130,15 +133,38 @@ const CheckoutPage: React.FC = () => {
         user: user.id!,
         delivery_address: values.deliveryAddress,
         contact_phone: values.contactNumber,
-        total_price: Number((totalPrice + 3.99).toFixed(2)),
+        total_price: Number(finalTotal.toFixed(2)),
         status: ORDER_STATUS.PAYMENT_PENDING,
       };
 
       const order = await apiService.createOrder(orderData);
       setCreatedOrderId(order.id);
 
-      // For cash payments, process immediately
-      if (values.paymentMethod === "cash") {
+      if (values.paymentMethod === "credit_card") {
+        const paymentResult = await paymentService.processCreditCardPayment(
+          orderData.total_price,
+          order.id,
+          values.cardNumber,
+          values.cardExpiry,
+          values.cardCvc
+        );
+
+        if (!paymentResult.success) {
+          throw new Error(paymentResult.error || "Payment processing failed");
+        }
+
+        const paymentData: Payment = {
+          order: order.id!,
+          payment_method: values.paymentMethod,
+          transaction_id: paymentResult.transactionId,
+        };
+
+        await apiService.createPayment(paymentData);
+        
+        clearCart();
+        toast.success("Pedido realizado com sucesso!");
+        navigate(`/order-tracking?orderId=${order.id}`);
+      } else if (values.paymentMethod === "cash") {
         const paymentResult = await paymentService.processCashPayment(
           orderData.total_price,
           order.id
@@ -159,11 +185,28 @@ const CheckoutPage: React.FC = () => {
         clearCart();
         toast.success("Pedido realizado com sucesso!");
         navigate(`/order-tracking?orderId=${order.id}`);
+      } else if (values.paymentMethod === "mercadopago") {
+        const paymentResult = await paymentService.processMercadoPagoPayment(
+          totalPrice + 3.99,
+          createdOrderId
+        );
+
+        if (!paymentResult.success) {
+          throw new Error(paymentResult.error || "Payment processing failed");
+        }
+
+        const paymentData: Payment = {
+          order: createdOrderId,
+          payment_method: "mercadopago",
+          transaction_id: paymentResult.transactionId,
+        };
+
+        await apiService.createPayment(paymentData);
+        
+        clearCart();
+        toast.success("Pagamento concluído! Pedido realizado com sucesso!");
+        navigate(`/order-tracking?orderId=${createdOrderId}`);
       }
-      
-      // For MercadoPago, we don't process here - we just show the MercadoPago UI
-      // The MercadoPago component will handle the payment flow
-      
     } catch (error) {
       console.error("Erro no checkout:", error);
       toast.error(
@@ -185,7 +228,6 @@ const CheckoutPage: React.FC = () => {
 
       await apiService.createPayment(paymentData);
       
-      // Update order status after successful payment
       await paymentService.processMercadoPagoPayment(
         totalPrice + 3.99,
         createdOrderId
@@ -395,7 +437,7 @@ const CheckoutPage: React.FC = () => {
                             </p>
                           )}
                         </div>
-                        <span>${(item.price * item.quantity).toFixed(2)}</span>
+                        <span>R${(item.price * item.quantity).toFixed(2)}</span>
                       </div>
                     </div>
                   ))}
@@ -404,15 +446,15 @@ const CheckoutPage: React.FC = () => {
                 <div className="pt-4 border-t">
                   <div className="flex justify-between pb-2">
                     <span>Subtotal</span>
-                    <span>${totalPrice.toFixed(2)}</span>
+                    <span>R${totalPrice.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between pb-2">
                     <span>Taxa de Entrega</span>
-                    <span>$3.99</span>
+                    <span>R${deliveryFee.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between pt-2 border-t text-lg font-bold">
                     <span>Total</span>
-                    <span>${(totalPrice + 3.99).toFixed(2)}</span>
+                    <span>R${finalTotal.toFixed(2)}</span>
                   </div>
                 </div>
               </div>

@@ -68,7 +68,7 @@ const CartItem: React.FC<CartItemProps> = ({
       </div>
 
       <div className="w-24 text-right">
-        ${(item.price * item.quantity).toFixed(2)}
+        R${(item.price * item.quantity).toFixed(2)}
       </div>
 
       <Button 

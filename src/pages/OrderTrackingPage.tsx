@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { apiService, Order } from '@/services/api';
@@ -343,7 +342,7 @@ const OrderTrackingPage: React.FC = () => {
                             )}
                           </div>
                         </div>
-                        <span>${item.price.toFixed(2)}</span>
+                        <span>R${item.price.toFixed(2)}</span>
                       </div>
                     ))
                   ) : (
@@ -353,7 +352,7 @@ const OrderTrackingPage: React.FC = () => {
                   <div className="pt-4 mt-4 border-t">
                     <div className="flex justify-between">
                       <span>Total</span>
-                      <span className="font-bold">${order.total_price.toFixed(2)}</span>
+                      <span className="font-bold">R${order.total_price.toFixed(2)}</span>
                     </div>
                   </div>
                 </div>

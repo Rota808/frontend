@@ -16,6 +16,9 @@ const CartPage: React.FC = () => {
     }
   };
   
+  const deliveryFee = 3.99;
+  const finalTotal = totalPrice + deliveryFee;
+  
   return (
     <div className="pizza-container py-8">
       <h1 className="text-3xl font-bold text-center mb-6">Seu Carrinho</h1>
@@ -51,15 +54,15 @@ const CartPage: React.FC = () => {
           <div className="mt-6 pt-6 border-t">
             <div className="flex justify-between items-center mb-4">
               <span className="text-lg font-medium">Subtotal</span>
-              <span className="text-lg font-medium">${totalPrice.toFixed(2)}</span>
+              <span className="text-lg font-medium">R${totalPrice.toFixed(2)}</span>
             </div>
             <div className="flex justify-between items-center mb-4 text-muted-foreground">
               <span>Taxa de Entrega</span>
-              <span>$3.99</span>
+              <span>R${deliveryFee.toFixed(2)}</span>
             </div>
             <div className="flex justify-between items-center mb-6 text-xl font-bold">
               <span>Total</span>
-              <span>${(totalPrice + 3.99).toFixed(2)}</span>
+              <span>R${finalTotal.toFixed(2)}</span>
             </div>
             
             <div className="flex flex-col sm:flex-row justify-between gap-4">
